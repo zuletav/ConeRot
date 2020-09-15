@@ -247,6 +247,7 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
         #sampler = emcee.ensemblesampler(nwalkers, ndim, lnprob, args=(bnds))
 
         #os.environ["OMP_NUM_THREADS"] = "1"
+        
         #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, threads=n_cores)
         ##sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob)
         #sampler.run_mcmc(pos, Nit)
@@ -344,6 +345,9 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
                              zip(*np.percentile(chains, [16, 50, 84],
                                                 axis=0))))
 
+
+    np.save(workdir+'mcmc_results.dat',mcmc_results)
+
     mcmc_results_0 = np.zeros(nvar)
 
     print( "param     distrib     max ")
@@ -432,6 +436,7 @@ def proc_1region(iregion):
         np.save(M.workdir+'result_ml_errors.dat',errors_ml)
 
     result_ml=np.load(masterworkdir+'result_ml_region'+str(iregion)+'.dat.npy')
+    errors_ml=np.load(masterworkdir+'result_ml_errors_region'+str(iregion)+'.dat.npy')
     print( "result_ml_region is ",result_ml)
     for iparam in list(range(nvar)):
         print( names[iparam],"->",result_ml[iparam])
@@ -549,6 +554,8 @@ def exec_Regions(M,OptimM):
     stack_v_Phi_profiles=np.zeros((len(passoutput),nrs))
     stack_v_R_profiles=np.zeros((len(passoutput),nrs))
     stack_sv_R_profiles=np.zeros((len(passoutput),nrs))
+    stack_v_z_profiles=np.zeros((len(passoutput),nrs))
+    stack_sv_z_profiles=np.zeros((len(passoutput),nrs))
     stack_sprofiles=np.zeros((len(passoutput),nrs))
     stack_vecregions=np.zeros((len(passoutput),nrs))
     
@@ -574,14 +581,16 @@ def exec_Regions(M,OptimM):
             cube_diffimDConemoddrot[iregion,:,:] = aregionoutput[13]
 
         rrs=radialprofile[0]
-        if (M.DoAccr):
-            v_Phi_prof=radialprofile[1]
-            sv_Phi_prof=radialprofile[2]
+        v_Phi_prof=radialprofile[1]
+        sv_Phi_prof=radialprofile[2]
+        if (M.DoMerid):
             v_R_prof=radialprofile[3]
             sv_R_prof=radialprofile[4]
-        else:
-            v_Phi_prof=radialprofile[1]
-            sv_Phi_prof=radialprofile[2]
+            v_z_prof=radialprofile[5]
+            sv_z_prof=radialprofile[6]
+        elif (M.DoAccr):
+            v_R_prof=radialprofile[3]
+            sv_R_prof=radialprofile[4]
             
         vecregion=np.zeros(len(rrs))
         vecregion[np.where( (rrs  >= amin) & (rrs <= amax))] = 1.
@@ -589,7 +598,12 @@ def exec_Regions(M,OptimM):
         stack_sprofiles[iregion,:] = sv_Phi_prof
         stack_vecregions[iregion,:] = vecregion
 
-        if (M.DoAccr):
+        if (M.DoMerid):
+            stack_v_z_profiles[iregion,:] = v_z_prof
+            stack_sv_z_profiles[iregion,:] = sv_z_prof
+            stack_v_R_profiles[iregion,:] = v_R_prof
+            stack_sv_R_profiles[iregion,:] = sv_R_prof
+        elif (M.DoAccr):
             stack_v_R_profiles[iregion,:] = v_R_prof
             stack_sv_R_profiles[iregion,:] = sv_R_prof
             
@@ -606,8 +620,17 @@ def exec_Regions(M,OptimM):
     allrads_v_Phi_prof[mask] =0.
     allrads_sv_Phi_prof=np.sum(stack_sprofiles*stack_vecregions,axis=0)/vec_norm
     allrads_sv_Phi_prof[mask] =0.
-    
-    if (M.DoAccr):
+
+    if (M.DoMerid):
+        allrads_v_R_prof=np.sum(stack_v_R_profiles*stack_vecregions,axis=0)/vec_norm
+        allrads_v_R_prof[mask] =0.
+        allrads_sv_R_prof=np.sum(stack_sv_R_profiles*stack_vecregions,axis=0)/vec_norm
+        allrads_sv_R_prof[mask] =0.   
+        allrads_v_z_prof=np.sum(stack_v_z_profiles*stack_vecregions,axis=0)/vec_norm
+        allrads_v_z_prof[mask] =0.
+        allrads_sv_z_prof=np.sum(stack_sv_z_profiles*stack_vecregions,axis=0)/vec_norm
+        allrads_sv_z_prof[mask] =0.   
+    elif (M.DoAccr):
         allrads_v_R_prof=np.sum(stack_v_R_profiles*stack_vecregions,axis=0)/vec_norm
         allrads_v_R_prof[mask] =0.
         allrads_sv_R_prof=np.sum(stack_sv_R_profiles*stack_vecregions,axis=0)/vec_norm
@@ -624,8 +647,8 @@ def exec_Regions(M,OptimM):
     pf.writeto(fileout_cuberegions,cube_regions, hdr_c, overwrite=True)
     
     im_norm = np.sum(cube_regions, axis = 0)
-    mask= (np.fabs(im_norm) < 0.1)
-    im_norm[mask] = 0.1
+    mask= (np.fabs(im_norm) < 0.01)
+    im_norm[mask] = 0.01
     
     imdrotdiff= np.sum(cube_imdrotdiff * cube_regions, axis = 0) / im_norm
     imdrotdiff[mask]=0.
@@ -637,8 +660,8 @@ def exec_Regions(M,OptimM):
     imdrotdiff_b[mask]=0.
 
     im_norm_faceon = np.sum(cube_regions_faceon, axis = 0)
-    mask_fon= (np.fabs(im_norm_faceon) < 0.1)
-    im_norm_faceon[mask_fon] = 0.1
+    mask_fon= (np.fabs(im_norm_faceon) < 0.01)
+    im_norm_faceon[mask_fon] = 0.01
 
     imdiff_faceon= np.sum(cube_im_diff_faceon * cube_regions_faceon, axis = 0) / im_norm_faceon
     imdiff_faceon[mask_fon]=0.
@@ -680,9 +703,16 @@ def exec_Regions(M,OptimM):
     chi2regions=np.sum( im_c_w[regionsmask]*(imdiff_faceon[regionsmask])**2)/M.Ncorr
     M.fout.write("chi2regions=%.6e\n" % (chi2regions))
 
-
-
-    if (M.DoAccr):
+    if (M.DoMerid):
+        save_prof = np.zeros((nrs,7))
+        save_prof[:,0] = rrs0
+        save_prof[:,1] = allrads_v_Phi_prof
+        save_prof[:,2] = allrads_sv_Phi_prof
+        save_prof[:,3] = allrads_v_R_prof
+        save_prof[:,4] = allrads_sv_R_prof
+        save_prof[:,5] = allrads_v_z_prof
+        save_prof[:,6] = allrads_sv_z_prof
+    elif (M.DoAccr):
         save_prof = np.zeros((nrs,5))
         save_prof[:,0] = rrs0
         save_prof[:,1] = allrads_v_Phi_prof

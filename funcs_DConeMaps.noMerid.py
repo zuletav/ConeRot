@@ -237,11 +237,6 @@ def exec_prep_files(M):
     workdir=M.workdir
     DumpAllFitsFiles=M.DumpAllFitsFiles
 
-    if (not re.search(r"\/$",workdir)):
-        workdir+='/'
-        M.workdir=workdir
-        print("added trailing back slash to outputdir")
-
 
 
     inbasename=os.path.basename(filename_source)
@@ -478,7 +473,6 @@ def exec_conicpolar_expansions(M):
     domain=M.domain
     fieldscale=M.fieldscale # shrink radial field of view of polar maps by this factor
     DoAccr=M.DoAccr
-    DoMerid=M.DoMerid
     
     hdu=M.Hducentered
     hduw=M.Hduwcentered
@@ -631,8 +625,6 @@ def exec_conicpolar_expansions(M):
     sKepAmps= np.double(np.zeros(len(rrs)))
     AccrAmps= np.double(np.zeros(len(rrs)))
     sAccrAmps= np.double(np.zeros(len(rrs)))
-    MeridAmps= np.double(np.zeros(len(rrs)))
-    sMeridAmps= np.double(np.zeros(len(rrs)))
 
     vsysts=np.zeros(hdrpolar['NAXIS2'])
 
@@ -667,23 +659,8 @@ def exec_conicpolar_expansions(M):
         vsyst=M.vsyst
         if (M.Verbose):
             print( "vsyst from M = ",vsyst)
-
-
-    RestrictAvToRadialDomain=False # set to True is faster but may lead to discontinuities in region averages. 
+        
     for irrs in range(len(rrs)):
-        
-        KepAmps[irrs] = 0.
-        sKepAmps[irrs] = 0.
-        AccrAmps[irrs] = 0.
-        sAccrAmps[irrs] = 0.
-        MeridAmps[irrs] = 0.
-        sMeridAmps[irrs] = 0.
-        im_polar_av[irrs,:] = 0.
-        if (( (irrs < ia_min) or (irrs > ia_max) ) and RestrictAvToRadialDomain):
-            continue
-
-
-        
         v0_vec=im_polar[irrs,:]-vsyst
         if (M.DoErrorMap): 
             w_vec=weights[irrs,:]
@@ -699,21 +676,18 @@ def exec_conicpolar_expansions(M):
                 
         thisradius=rrs[irrs] #arcsec
         cosi=np.cos(M.inc)
-        Nind=2.*np.pi*thisradius * np.fabs(cosi) /(M.bmaj) # aprox number of beams at each radius
+        Nind=2.*np.pi*thisradius * cosi /(M.bmaj) # aprox number of beams at each radius
         Nsum=len(w_vec)
         Npolcorr=Nsum/Nind
-        #print("irrs ",irrs,Nsum, Nind, Npolcorr)
         if Npolcorr < 1:
             Npolcorr=1.
         im_Npolcorr[irrs,:]=Npolcorr
         
         if ( (np.sum(w_vec) == 0.) or ( np.sum( w_vec * (np.cos(phis_rad))**2)**2 == 0.)):
             KepAmp=0.
-            sKepAmp=1E20
+            sKepAmp=0.
             AccrAmp=0.
             sAccrAmp=1E20
-            MeridAmp=0.
-            sMeridAmp=1E20
         else:
             if (M.InheritMumap):
                 mumap_vec=mumap_polarpos[irrs,:]
@@ -723,105 +697,7 @@ def exec_conicpolar_expansions(M):
                     KepAmp = np.sum(w_vec* v0_vec * mumap_vec * np.cos(phis_rad)) / np.sum(w_vec * mumap_vec *(np.cos(phis_rad))**2)
                     AccrAmp = 0. 
             else:
-                Cramer = True
-                if (DoMerid and Cramer):
-                    sinphis = np.sin(phis_rad)
-                    cosphis = np.cos(phis_rad)
-                    a_1 = np.sum(w_vec * cosphis**2)
-                    b_1 = np.sum(w_vec * sinphis * cosphis)
-                    c_1 = np.sum(w_vec * cosphis)
-                    d_1 = np.sum(w_vec * cosphis * v0_vec)
-                    vard_1 = np.sum(w_vec * cosphis**2)
-                    a_2 = b_1
-                    b_2 = np.sum(w_vec * sinphis**2)
-                    c_2 = np.sum(w_vec * sinphis)
-                    d_2 = np.sum(w_vec * sinphis * v0_vec)
-                    vard_2 = np.sum(w_vec * sinphis**2)
-                    a_3 = c_1
-                    b_3 = c_2
-                    c_3 = np.sum(w_vec)
-                    d_3 = np.sum(w_vec * v0_vec)
-                    vard_3 = np.sum(w_vec)
-
-                    detM = a_1*(b_2*c_3 - b_3*c_2) - b_1*(a_2*c_3 - a_3*c_2) + c_1*(a_2*b_3 - a_3*b_2)
-                    if (detM == 0.):
-                        #print("singular matrix")
-                        continue
-                        
-                    A= (d_1 * (b_2*c_3 - b_3*c_2) + d_2 * (c_1*b_3 - b_1*c_3) + d_3 * (b_1*c_2-c_1*b_2))/detM
-                    sigmaA= np.sqrt( vard_1*(b_2*c_3 - b_3*c_2)**2 + vard_2*(c_1*b_3 - b_1*c_3)**2 + vard_3*(b_1*c_2-c_1*b_2)**2)/detM
-
-                    B= (d_1 * (a_3*c_2 - a_2*c_3) + d_2 *(a_1*c_3 - c_1*a_3) + d_3 * (c_1*a_2 - a_1*c_2))/detM
-                    sigmaB= np.sqrt( vard_1*(a_3*c_2 - a_2*c_3)**2 + vard_2*(a_1*c_3 - c_1*a_3)**2 + vard_3*(c_1*a_2-a_1*c_2)**2)/detM
-
-                    C= (d_1 * (a_2*b_3 - a_3*b_2) + d_2 * (b_1*a_3 - a_1*b_3) + d_3 * (a_1*b_2-b_1*a_2))/detM
-                    sigmaC= np.sqrt(vard_1 * (a_2*b_3 - a_3*b_2)**2 + vard_2 * (b_1*a_3 - a_1*b_3)**2 + vard_3 * (a_1*b_2-b_1*a_2)**2)/detM
-
-                    KepAmp = A
-                    sKepAmp = sigmaA
-
-                    AccrAmp = B
-                    sAccrAmp = sigmaB
-
-                    MeridAmp = C
-                    sMeridAmp = sigmaC 
-                    
-                    sAccrAmp *= np.sqrt(Npolcorr)
-                    sKepAmp *= np.sqrt(Npolcorr)
-                    sMeridAmp *= np.sqrt(Npolcorr)
-                elif (DoMerid):
-                    sum_w=np.sum(w_vec)
-                    sum_wv0=np.sum(w_vec * v0_vec)
-                    sum_wsinphi = np.sum(w_vec*np.sin(phis_rad))
-                    sum_wcosphi = np.sum(w_vec*np.cos(phis_rad))
-                    sinphis = np.sin(phis_rad)
-                    cosphis = np.cos(phis_rad)
-                    subA_num= (np.sum( w_vec * sinphis**2 - w_vec * sinphis * sum_wsinphi /sum_w ) /
-                               np.sum( w_vec * sinphis * cosphis  - w_vec * cosphis * sum_wsinphi /sum_w ))
-
-                    A_num = ( np.sum(v0_vec * w_vec * sinphis  - w_vec * sinphis * sum_wv0 / sum_w)
-                              - subA_num * np.sum( v0_vec * w_vec * cosphis - w_vec * cosphis * sum_wv0 / sum_w))
-
-                    subA_denom1_num1 = np.sum( w_vec * cosphis**2  - w_vec * cosphis * sum_wcosphi /sum_w )
-                    subA_denom1_denom1 = np.sum( w_vec * cosphis * sinphis  - w_vec * cosphis * sum_wsinphi /sum_w )
-
-                    A_denom = ( np.sum(  (w_vec * sinphis * cosphis  - w_vec * sinphis * sum_wcosphi /sum_w )
-                                - (w_vec *  sinphis**2 - w_vec * sinphis * sum_wsinphi / sum_w) * subA_denom1_num1 / subA_denom1_denom1 ) )
-
-                    A = A_num / A_denom
-
-                    varA_num = np.sum( sinphis**2 * w_vec + w_vec**2 * sinphis**2 / sum_w) + subA_num**2 * np.sum( cosphis**2 * w_vec + w_vec**2 * cosphis**2 / sum_w)
-                    sigma_A = np.sqrt(varA_num/A_denom**2)
-                                       
-                    B_denom = np.sum( w_vec*cosphis *sinphis - w_vec * cosphis * sum_wsinphi / sum_w)
-                    subB_num = np.sum(w_vec * cosphis**2 - w_vec * cosphis * sum_wcosphi / sum_w)
-                    B =  ( (np.sum( v0_vec * w_vec * cosphis - w_vec * cosphis * sum_wv0 / sum_w ) -
-                            A * subB_num) / B_denom )
-                    varB =  ( np.sum( w_vec * cosphis**2 + w_vec**2 * cosphis**2 / sum_w)
-                                  + sigma_A**2 * subB_num**2 )/B_denom**2
-                    sigma_B = np.sqrt(varB)
-
-                    C_denom = sum_w * abs(np.cos(M.inc))
-                    C = np.sum( w_vec * (v0_vec - A * cosphis - B * sinphis )) /  C_denom
-
-                    varC = np.sum( w_vec**2 * ( err_vec**2 + sigma_A**2 * cosphis**2 + sigma_B**2 + sinphis**2 )) / C_denom**2
-                    sigma_C= np.sqrt(varC)
-
-
-                    KepAmp = A
-                    sKepAmp = sigma_A
-
-                    AccrAmp = B
-                    sAccrAmp = sigma_B
-
-                    MeridAmp = C
-                    sMeridAmp = sigma_C 
-                    
-                    sAccrAmp *= np.sqrt(Npolcorr)
-                    sKepAmp *= np.sqrt(Npolcorr)
-                    sMeridAmp *= np.sqrt(Npolcorr)
-                    
-                elif (DoAccr):
+                if (DoAccr):
                     subsum1=np.sum(w_vec * v0_vec  *  np.cos(phis_rad)) / np.sum( w_vec * (np.cos(phis_rad))**2)
                     varsubsum1=np.sum((np.sqrt(w_vec)  *  np.cos(phis_rad)) / np.sum( w_vec * (np.cos(phis_rad))**2)**2)
                     numerator=np.sum(w_vec * np.sin(phis_rad) * (v0_vec - np.cos(phis_rad) * subsum1))
@@ -849,8 +725,7 @@ def exec_conicpolar_expansions(M):
                     
                     sAccrAmp *= np.sqrt(Npolcorr)
                     sKepAmp *= np.sqrt(Npolcorr)
-                    MeridAmp = 0.
-                    sMeridAmp = 1E20
+                    
                     
                 else:
                     denom=np.sum(w_vec * (np.cos(phis_rad))**2)
@@ -865,9 +740,8 @@ def exec_conicpolar_expansions(M):
                     sKepAmp *= np.sqrt(Npolcorr)
                     
                     AccrAmp = 0. 
-                    sAccrAmp = 1E20
-                    MeridAmp = 0.
-                    sMeridAmp = 1E20
+                    sAccrAmp=0.
+
                     
         # else:
         # v0_vec=im_polar[irrs,:]-vsyst
@@ -882,12 +756,7 @@ def exec_conicpolar_expansions(M):
         sKepAmps[irrs] = sKepAmp
         AccrAmps[irrs] = AccrAmp
         sAccrAmps[irrs] = sAccrAmp
-        MeridAmps[irrs] = MeridAmp
-        sMeridAmps[irrs] = sMeridAmp
-        if (DoMerid):
-            v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad) * MeridAmp*np.cos(M.inc)
-            im_polar_av[irrs,:] = v0_vec_av + vsyst           
-        elif (DoAccr):
+        if (DoAccr):
             v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad)
             im_polar_av[irrs,:] = v0_vec_av + vsyst
         else:
@@ -907,11 +776,6 @@ def exec_conicpolar_expansions(M):
     sv_R_prof = sAccrAmps
     v_R_prof = np.nan_to_num(v_R_prof)
     sv_R_prof = np.nan_to_num(sv_R_prof) 
-    
-    v_z_prof = MeridAmps
-    sv_z_prof = sMeridAmps
-    v_z_prof = np.nan_to_num(v_z_prof)
-    sv_z_prof = np.nan_to_num(sv_z_prof) 
 
     
     #bmaj=hdr2['BMAJ']
@@ -1013,9 +877,8 @@ def exec_conicpolar_expansions(M):
         dispv_Phi_prof=np.nan_to_num(dispv_Phi_prof)
 
     else:
-        zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
  
-        #zeimage=weights*(im_polar-im_polar_av)**2
+        zeimage=weights*(im_polar-im_polar_av)**2
         zeimage=np.nan_to_num(zeimage)
 
         if (np.any(weights < 0.)):
@@ -1047,24 +910,13 @@ def exec_conicpolar_expansions(M):
         #sv_Phi_prof=np.nan_to_num(sv_Phi_prof)
 
 
-    if (M.DoMerid):
-        M.RadialProfile=[rrs,v_Phi_prof, sv_Phi_prof,  v_R_prof, sv_R_prof, v_z_prof, sv_z_prof]
-    elif (M.DoAccr):
+    if (M.DoAccr):
         M.RadialProfile=[rrs,v_Phi_prof, sv_Phi_prof,  v_R_prof, sv_R_prof]
     else:
         M.RadialProfile=[rrs,v_Phi_prof,sv_Phi_prof]
 
     if (DumpAllFitsFiles):
-        if (M.DoMerid):
-            save_prof = np.zeros((hdrpolar['NAXIS2'],7))
-            save_prof[:,0] = rrs
-            save_prof[:,1] = v_Phi_prof
-            save_prof[:,2] = sv_Phi_prof
-            save_prof[:,3] = v_R_prof 
-            save_prof[:,4] = sv_R_prof
-            save_prof[:,5] = v_z_prof 
-            save_prof[:,6] = sv_z_prof
-        elif DoAccr:
+        if DoAccr:
             save_prof = np.zeros((hdrpolar['NAXIS2'],5))
             save_prof[:,0] = rrs
             save_prof[:,1] = v_Phi_prof
@@ -1081,11 +933,6 @@ def exec_conicpolar_expansions(M):
             
         fileout_radialprofile=re.sub('fullim.fits', 'radial_profile.dat', filename_fullim)
         np.savetxt(fileout_radialprofile, save_prof)   # x,y,z equal sized 1D arrays
-
-
-        fileout_polar_Npolcorr=re.sub('fullim.fits', 'Npolcorr.fits', filename_fullim)
-        hdupolar.data =im_Npolcorr
-        hdupolar.writeto(fileout_polar_Npolcorr, overwrite=True)
 
 
         fileout_polar_av=re.sub('fullim.fits', 'polar_av.fits', filename_fullim)
@@ -1351,14 +1198,10 @@ def exec_conicpolar_expansions(M):
         plt.xlim(0.,rmax)
         #plt.ylim(np.min(v_Phi_prof),1.1*np.max(v_Phi_prof))
 
-        plt.ylim(-0.1*np.max(v_Phi_prof[ia_min:ia_max]),1.1*np.max(v_Phi_prof[ia_min:ia_max]))
+        plt.ylim(-0.1*np.max(v_Phi_prof),1.1*np.max(v_Phi_prof))
         plt.plot(rrs,v_Phi_prof,color='grey',linewidth=0.1,linestyle='solid')
         plt.fill_between(rrs, v_Phi_prof+sv_Phi_prof, v_Phi_prof-sv_Phi_prof, lw=0.1,color='r', alpha=0.3, interpolate=True, step='mid')
-
-        if (DoMerid):
-            plt.plot(rrs,v_z_prof,color='orange',linewidth=1.,linestyle='solid',alpha=0.5,label='v_z')
-            plt.plot(rrs,v_R_prof,color='green',linewidth=1.,linestyle='solid',alpha=0.5,label='v_R')
-        elif (DoAccr):
+        if (DoAccr):
             plt.plot(rrs,v_R_prof,color='green',linewidth=1.,linestyle='solid',alpha=0.5,label='v_R')
             
 

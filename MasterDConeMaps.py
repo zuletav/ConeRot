@@ -9,7 +9,7 @@ import re
 include_path='/Users/simon/common/python/include/'
 sys.path.append(include_path)
 import  ConeRot.DConeMaps  as DConeMaps
-from  FixHeads import fixhead_3 
+from  ImUtils.FixHeads import fixhead_3 
 import  ConeRot.Optim_DCone as Optim_DCone
 
 
@@ -40,6 +40,8 @@ class Setup():
                  n_abins=10,
                  DoAccr=False,
                  DoAccr_fixPAinc=False,
+                 DoMerid=False,
+                 DoMerid_fixPAinc=False,
                  DoExec=True,
                  DoFixOrient=True,
                  DumpAllFitsFiles=False,
@@ -62,7 +64,8 @@ class Setup():
                  InjectNoise=False,
                  DoDCone=False,
                  InheritMumap=False,  # pass mumap from a previous orientation - used as weights in KepAmps
-                 StoreRegions=False):
+                 StoreRegions=False,
+                 exec_master_script='exec_master.py'):
 
 
         initlocals=locals()
@@ -92,7 +95,7 @@ class Setup():
 
         os.system("mkdir "+self.workdir)
 
-        os.system("rsync -va exec_master.py "+self.workdir)
+        os.system("rsync -va "+self.exec_master_script+" "+self.workdir)
         os.system("tar cvfz "+self.workdir+"ball_conemaps.tgz "+include_path+"conemaps   ")
 
 
@@ -180,6 +183,7 @@ class Setup():
         AllRads=False
         AllRadsMCMC=False
         self.DoAccr=self.DoAccr_fixPAinc
+        self.DoMerid=self.DoMerid_fixPAinc
         for aline in log_output:
             if AllRads:
                 matches = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*) $",aline)
@@ -217,7 +221,11 @@ class Setup():
         self.nwalkers = 10 # 
         self.domain=( ('tanpsi',(tanpsi-self.rangetanpsi/2.,tanpsi+self.rangetanpsi/2.)),)
 
+        #if self.DoMerid:
+        #    self.workdir=re.sub('/$','_Merid/',self.workdir)
+
         self.workdir=re.sub('/$','_fixPAinc/',self.workdir)
+
         print("doing fixed orientation, workdir:",self.workdir)
         self.Run()
 

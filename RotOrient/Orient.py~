@@ -77,11 +77,11 @@ def  PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allr
         thislabel = r'$-\psi-%.1f^\circ$ fix $i,\mathrm{PA}$'  %  -allradspsi_fixincPA
         axprofile.plot(rregions_fixincPA,-(psis_fixincPA-allradspsi_fixincPA),linewidth=1.,linestyle='solid',color='grey',label=thislabel,marker='o',markersize=4.)
         print( "psi errors fixincPA:",psierrors_fixincPA)
-        axprofile.fill_between(rregions_fixincPA, -(psis_fixincPA-allradspsi)-psierrors_fixincPA[1,:], -(psis_fixincPA-allradspsi)+psierrors_fixincPA[0,:],lw=0.1,color='grey', alpha=0.2, interpolate=True) #, step='mid'
+        axprofile.fill_between(rregions_fixincPA, -(psis_fixincPA-allradspsi_fixincPA)-psierrors_fixincPA[1,:], -(psis_fixincPA-allradspsi_fixincPA)+psierrors_fixincPA[0,:],lw=0.1,color='grey', alpha=0.2, interpolate=True) #, step='mid'
 
 
-        ymax=1.1*np.max(np.concatenate( (dPAs+PAerrors[1,:], dincs+incerrors[1,:], dpsis+psierrors[1,:], -(psis_fixincPA-allradspsi)+psierrors_fixincPA[1,:]   )))
-        ymin=1.05*np.min(np.concatenate( (dPAs-PAerrors[0,:], dincs-incerrors[0,:], dpsis-psierrors[0,:], -(psis_fixincPA-allradspsi)-psierrors_fixincPA[0,:] )))
+        ymax=1.1*np.max(-(psis_fixincPA-allradspsi_fixincPA)+psierrors_fixincPA[0,:])
+        ymin=1.05*np.min( -(psis_fixincPA-allradspsi_fixincPA)-psierrors_fixincPA[1,:])
 
         print( "ymax=",ymax)
 

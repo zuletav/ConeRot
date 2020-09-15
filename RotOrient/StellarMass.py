@@ -13,9 +13,9 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
     # optimal mass
     # ----------------------------------------------------------------------
     
-    ##print( "bmaj = ",bmaj,"\n";)
-    #Nind=2.*np.pi*rrs * cosi  /(bmaj) #cosi
-    ##print( "Nind=",Nind)
+    #print( "bmaj = ",bmaj,"\n")
+    Nind_rad=(a_max-a_min) * cosi  /(bmaj) #cosi
+    #print( "Nind_rad=",Nind_rad)
     ##print( "sqrt(Nind)=",np.sqrt(Nind))
     #
     #dispv_Phi_prof=sv_Phi_prof.copy()
@@ -40,8 +40,8 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
         #sv0=sv_Phi_prof_mean[np.where(mask)]
         sv0=sv_Phi_prof[np.where(mask)]
 
-        print ("v0 ",v0)
-        print ("sv0 ",sv0)
+        #print ("v0 ",v0)
+        #print ("sv0 ",sv0)
         
         subRRs=RRs[np.where(mask)]
         
@@ -49,7 +49,7 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
         Mstar_denom = (np.sum(np.sqrt(1.-cosi**2)*1E-3*np.sqrt( const.G.value  * const.M_sun.value) / subRRs / sv0**2))**2
         Mstar = Mstar_num / Mstar_denom
         Ms[irrs] = Mstar
-        print( "rrs ",rbins[irrs]," iMstar = ",Mstar, "Mstar_num ", Mstar_num,"Mstar_denom", Mstar_denom )
+        #print( "rrs ",rbins[irrs]," iMstar = ",Mstar, "Mstar_num ", Mstar_num,"Mstar_denom", Mstar_denom )
         
         #Mstar = float("%.2f" % Mstar)
         
@@ -70,6 +70,7 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
     print( "Mstar = ",Mstar,"+-",sMstar,"Msun")
     
     print( "radial Mstar scatter: ",np.std(Ms),"Msun")
+    print( "radial Mstar error on mean: ",np.std(Ms)/np.sqrt(Nind_rad),"Msun")
 
         
     vstar = np.sqrt(1.-cosi**2)*1E-3*np.sqrt( const.G.value  * Mstar * const.M_sun.value / RRs )

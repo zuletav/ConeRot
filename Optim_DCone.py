@@ -148,12 +148,23 @@ class OptimModel():
         exec_emcee(M,result_ml,False,self) #self.RunMCMC
         M.fout.write("Global MCMC: \n")
         print( "MCMC best params  is ",result_ml)
-        for iparam in range(nvar):
+        for iparam in list(range(nvar)):
             print( names[iparam],"->",result_ml[iparam])
             setattr(M,names[iparam],result_ml[iparam])
             M.fout.write(names[iparam]+"-> %.6f " % (result_ml[iparam]))
-     
+
         M.fout.write("\n")
+
+        mcmc_results=np.load(M.workdir+'mcmc_results.dat.npy')
+        mcmc_results=mcmc_results.tolist()
+        
+        logstring="emcee posterior\n"
+        for iparam in list(range(nvar)):
+            #strparams=names[iparam]+" -> %.6f %.6f %.6f " % mcmc_results[iparam]
+            strparams=names[iparam]+" -> {0:.6f} {1:.6f} {2:.6f} ".format(*mcmc_results[iparam])
+            logstring=logstring+strparams+"\n"
+
+        M.fout.write(logstring)
 
         M.DumpAllFitsFiles=True
         #M.Optim=False

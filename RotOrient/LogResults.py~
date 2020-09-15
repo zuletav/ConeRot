@@ -35,7 +35,7 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
                 #instring=matches.group(0)
                 allradstanpsi_fixincPA=float(matches.group(1))
                 AllRads=False
-            if "All rads" in aline:
+            if "Global" in aline:
                 AllRads=True
             if Regions: 
                 matches = re.search("^>>>>> .* from (.*) to (.*)$",aline)
@@ -116,9 +116,9 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
                 allradstanpsiMCMC=float(matches.group(3))
                 #print( "allrads",aline," PA ",PA," inc ",inc, "tanpsi ", tanpsi)
                 AllRadsMCMC=False
-            if "All rads" in aline:
+            if "Global" in aline:
                 AllRads=True
-            if "All rads MCMC" in aline:
+            if "Global MCMC" in aline:
                 AllRadsMCMC=True
                 RunMCMC=True
             if Regions: 

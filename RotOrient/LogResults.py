@@ -5,7 +5,7 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
     
     file_log=workdir+'log_output.txt'
 
-    print( "loading file_log",file_log)
+    print( "loading file_log",file_log,"FixPAInc",FixPAInc)
     fin= open(file_log,"r")
     log_output=fin.readlines()
     fin.close
@@ -17,7 +17,7 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
     Regions=False
     emcee_posterior=False
     
-
+    
     
     if FixPAInc:
         r1s=[]

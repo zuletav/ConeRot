@@ -43,6 +43,7 @@ class Model():
                  vsyst=0.,
                  ComputeSystVelo=False,
                  DoAccr=False,
+                 DoMerid=False,
                  a_min=0.2,
                  a_max=0.6,
                  LegBkgd=-1,
