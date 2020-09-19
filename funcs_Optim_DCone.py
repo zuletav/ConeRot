@@ -233,11 +233,31 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
     nvar = len(names)
     print( "mcmc with nvar=",nvar)
     
+    #ndim =nvar
+    ##ndim, nwalkers = nvar, 60
+    #pos = [result_ml + 1e-1*np.random.randn(ndim) for i in list(range(nwalkers))]
+    
+    ranges = list(map( (lambda x: x[1][1]-x[1][0]),M.domain))
+        
+    allowed_ranges=np.array(ranges)
+    print("allowed_ranges ",allowed_ranges)
+
+    
+    nvar = len(names)
+    print( "mcmc with nvar=",nvar)
+    
     ndim =nvar
     #ndim, nwalkers = nvar, 60
-    pos = [result_ml + 1e-1*np.random.randn(ndim) for i in list(range(nwalkers))]
-    
-    
+    #pos = [result_ml + 1e-1*np.random.randn(ndim) for i in list(range(nwalkers))]
+    pos=[]
+    for i in list(range(nwalkers)):
+        if (np.any(allowed_ranges < 0.)):
+            sys.exit("wrong order of bounds in domains")
+        awalkerinit=result_ml+(1e-3*np.random.randn(ndim)*allowed_ranges)
+        pos.append(awalkerinit)
+
+    print("init for emcee :", result_ml)
+
     import emcee
     #nit=3000
     print( "in exec_emcee with RunMCMC=",RunMCMC)
