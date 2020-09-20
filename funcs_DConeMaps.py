@@ -974,7 +974,8 @@ def exec_conicpolar_expansions(M):
         #im_cosphi=np.tile(np.cos(phis_rad),(nphis,1))
         
 
-        zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
+        #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
+        zeimage = weights*(im_polar-im_polar_av)**2
         zeimage = np.nan_to_num(zeimage)
         deltaChi2 =  np.sum(zeimage,axis=1)
 
@@ -1013,7 +1014,8 @@ def exec_conicpolar_expansions(M):
         dispv_Phi_prof=np.nan_to_num(dispv_Phi_prof)
 
     else:
-        zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
+        #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
+        zeimage = weights*(im_polar-im_polar_av)**2
  
         #zeimage=weights*(im_polar-im_polar_av)**2
         zeimage=np.nan_to_num(zeimage)

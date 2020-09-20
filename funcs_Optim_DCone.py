@@ -253,7 +253,7 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
     for i in list(range(nwalkers)):
         if (np.any(allowed_ranges < 0.)):
             sys.exit("wrong order of bounds in domains")
-        awalkerinit=result_ml+(1e-2*np.random.randn(ndim)*allowed_ranges)
+        awalkerinit=result_ml+(1e-1*np.random.randn(ndim)*allowed_ranges)
         pos.append(awalkerinit)
 
     print("init for emcee :", result_ml)
@@ -562,6 +562,7 @@ def exec_Regions(M,OptimM):
     if (n_cores_regions > 1):
         p = Pool(n_cores_regions)
         passoutput = p.map(proc_1region, range(M.n_abins-1))
+        p.close()
     else:
         passoutput=[]
         for iregion in list(range(M.n_abins-1)):
