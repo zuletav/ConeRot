@@ -15,6 +15,9 @@ from  scipy.signal import medfilt2d
 include_path='/Users/simon/common/python/include/'
 sys.path.append(include_path)
 
+import ImUtils.Resamp as Resamp
+import ImUtils.Cube2Im as Cube2Im
+
 def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,VisibleXaxis=False,VisibleYaxis=False,DoBeamEllipse=False,DoGreyCont=False,DoCB=False,Clevs=False,Region=False,vsyst=0.,nplotsx=1,nplotsy=1,Region_Contours=False,SymmetricRange=False,UseScatter=False,cmap='ocean_r',filename_weights='',SubtractVsyst=False,ColorBarScale=1.,cblabel='km/s',Zoom=False,side=3.5,RegionOfInterest=False):
 
         print("vsyst",vsyst)
@@ -527,8 +530,6 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
         inc=''
         label=r'$v_\circ$'
         atitle=''
-        import Resamp
-        import Cube2Im
         filename_contours=False
         if (file_continuum):
                 file_im_continuum=workdir+inbasename+'_fullim_continuum.fits'
@@ -694,8 +695,6 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
         inc=''
         label=r'$v_\circ$'
         atitle=''
-        import Resamp
-        import Cube2Im
         filename_contours=False
         if (file_continuum):
                 file_im_continuum=workdir+inbasename+'_fullim_continuum.fits'

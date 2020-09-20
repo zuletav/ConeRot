@@ -253,7 +253,7 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
     for i in list(range(nwalkers)):
         if (np.any(allowed_ranges < 0.)):
             sys.exit("wrong order of bounds in domains")
-        awalkerinit=result_ml+(1e-3*np.random.randn(ndim)*allowed_ranges)
+        awalkerinit=result_ml+(1e-2*np.random.randn(ndim)*allowed_ranges)
         pos.append(awalkerinit)
 
     print("init for emcee :", result_ml)
