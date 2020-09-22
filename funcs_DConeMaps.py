@@ -699,7 +699,8 @@ def exec_conicpolar_expansions(M):
                 
         thisradius=rrs[irrs] #arcsec
         cosi=np.cos(M.inc)
-        Nind=2.*np.pi*thisradius * np.fabs(cosi) /(M.bmaj) # aprox number of beams at each radius
+        #Nind=2.*np.pi*thisradius * np.fabs(cosi) /(M.bmaj) # aprox number of beams at each radius
+        Nind=2.*np.pi*thisradius /(M.bmaj) # aprox number of beams at each radius
         Nsum=len(w_vec)
         Npolcorr=Nsum/Nind
         #print("irrs ",irrs,Nsum, Nind, Npolcorr)
@@ -975,7 +976,7 @@ def exec_conicpolar_expansions(M):
         
 
         #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
-        zeimage = weights*(im_polar-im_polar_av)**2
+        zeimage = weights*(im_polar-im_polar_av)**2/im_Npolcorr
         zeimage = np.nan_to_num(zeimage)
         deltaChi2 =  np.sum(zeimage,axis=1)
 
@@ -1015,7 +1016,7 @@ def exec_conicpolar_expansions(M):
 
     else:
         #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
-        zeimage = weights*(im_polar-im_polar_av)**2
+        zeimage = weights*(im_polar-im_polar_av)**2/im_Npolcorr
  
         #zeimage=weights*(im_polar-im_polar_av)**2
         zeimage=np.nan_to_num(zeimage)

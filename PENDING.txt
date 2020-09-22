@@ -1,1 +1,11 @@
 unify global execution and proc_1region
+
+
+not sure how to implement correlated pixels in the polar expansion.
+funcs_DConeMaps.py:
+(...) L702
+#Nind=2.*np.pi*thisradius * np.fabs(cosi) /(M.bmaj) # aprox number of beams at each radius
+Nind=2.*np.pi*thisradius /(M.bmaj) # aprox number of beams at each radius
+(...) L980
+#zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
+zeimage = weights*(im_polar-im_polar_av)**2/im_Npolcorr
