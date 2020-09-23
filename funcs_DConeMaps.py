@@ -1020,6 +1020,7 @@ def exec_conicpolar_expansions(M):
  
         #zeimage=weights*(im_polar-im_polar_av)**2
         zeimage=np.nan_to_num(zeimage)
+        #deltaChi2 =  np.sum(zeimage,axis=1)
 
         if (np.any(weights < 0.)):
             sys.exit("negative weights!!!!")
@@ -1032,14 +1033,24 @@ def exec_conicpolar_expansions(M):
         velodev_std_vec=np.std(deltaimage,axis=1)
         velodev_std2=np.std(velodev_std_vec[ia_min:ia_max])
 
-        deltaChi2 =  np.sum(zeimage,axis=1)
 
-        colapsed_weights=np.sum(weights,axis=1)
-        dispv_Phi_prof=colapsed_weights.copy()
-        mask=(colapsed_weights > 1E-20)
-        dispv_Phi_prof[mask]=np.sqrt(deltaChi2[mask]/colapsed_weights[mask])  # << weighted dispersion of residuals
-        dispv_Phi_prof[np.invert(mask)]=np.nan
-        # dispv_Phi_prof = np.sqrt(deltaChi2/colapsedweights)
+
+        varim = deltaimage**2 * weights
+        varvec = np.sum(varim,axis=1)
+        wvec = np.sum(weights,axis=1)
+        mask=(wvec < 1E-10)
+        vec_w_var=(varvec/wvec)
+        vec_w_var[mask]=0.
+        vec_median_w=np.median(weights,axis=1)
+        vec_typicalerror = np.sqrt(1./vec_median_w)
+        deltaChi2 = (vec_w_var/vec_typicalerror**2.)
+        
+        #colapsed_weights=np.sum(weights,axis=1)
+        #dispv_Phi_prof=colapsed_weights.copy()
+        #mask=(colapsed_weights > 1E-10)
+        #dispv_Phi_prof[mask]=np.sqrt(deltaChi2[mask]/colapsed_weights[mask])  # << weighted dispersion of residuals
+        #dispv_Phi_prof[np.invert(mask)]=np.nan
+        ## dispv_Phi_prof = np.sqrt(deltaChi2/colapsedweights)
 
             
         
