@@ -539,7 +539,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
                 #filename_contours=False
                 
 
-        label=r'$v_\circ - v^m_\circ$'
+        label=r'a) $v_\circ$'
         filename_grey=workdir+inbasename+'_centered.fits'
         filename_region=workdir+inbasename+'_imregions.fits'
         #filename_weights=workdir+inbasename+'_e_wcentered.fits'
@@ -549,6 +549,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
 
 
 
+        label=r'b) $v_\circ - v^m_\circ$'
         filename_grey=workdir+inbasename+'_allrads_azim_av_drot_diff.fits'
         filename_region=workdir+inbasename+'_imregions.fits'
         filename_weights=workdir+inbasename+'_e_wcentered.fits'
@@ -557,7 +558,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
         (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',filename_weights=filename_weights,UseScatter=True,DoCB=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side)
 
         if file_continuum:
-                label=r'continuum'
+                label=r'c) 225GHz continuum'
 
                 filename_grey=workdir+inbasename+'_subim_continuum.fits'
                 filename_contours=False
@@ -693,7 +694,7 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
 
 
         inc=''
-        label=r'$v_\circ$'
+        label=r'a) $v_\circ$'
         atitle=''
         filename_contours=False
         if (file_continuum):
@@ -714,7 +715,7 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
         print("iplotpos",iplotpos)
         (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side)
 
-        label=r'$v_\circ - v^m_\circ$'
+        label=r'b) $v_\circ - v^m_\circ$'
 
         filename_grey=workdir+inbasename+'_allrads_diff_faceon.fits'
         filename_region=workdir+inbasename+'_imregions_faceon.fits'
@@ -724,7 +725,7 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
         (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',UseScatter=True,DoCB=True,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side) # ,vsyst=vsyst)
 
         if file_continuum:
-                label=r'continuum'
+                label=r'c) 225GHz continuum'
 
                 filename_grey=workdir+inbasename+'_subim_continuum_faceon.fits'
                 filename_contours=False
