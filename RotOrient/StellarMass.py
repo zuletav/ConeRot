@@ -46,7 +46,7 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
         subRRs=RRs[np.where(mask)]
         
         Mstar_num =  (np.sum( v0 / (sv0**2 * np.sqrt(subRRs))))**2
-        Mstar_denom = (np.sum(np.sqrt(1.-cosi**2)*1E-3*np.sqrt( const.G.value  * const.M_sun.value) / subRRs / sv0**2))**2
+        Mstar_denom = (np.sum(1E-3*np.sqrt( const.G.value  * const.M_sun.value) / subRRs / sv0**2))**2
         Mstar = Mstar_num / Mstar_denom
         Ms[irrs] = Mstar
         #print( "rrs ",rbins[irrs]," iMstar = ",Mstar, "Mstar_num ", Mstar_num,"Mstar_denom", Mstar_denom )
@@ -64,7 +64,7 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
     subRRs=RRs[np.where(mask)]
     
     Mstar_num =  (np.sum( v0 / (sv0**2 * np.sqrt(subRRs))))**2
-    Mstar_denom = (np.sum(np.sqrt(1.-cosi**2)*1E-3*np.sqrt( const.G.value  * const.M_sun.value) / subRRs / sv0**2))**2
+    Mstar_denom = (np.sum(1E-3*np.sqrt( const.G.value  * const.M_sun.value) / subRRs / sv0**2))**2
     Mstar = Mstar_num / Mstar_denom
     sMstar = (1./Mstar_denom) * np.sqrt( np.sum( 1./(sv0**2 * subRRs)))
     print( "Mstar = ",Mstar,"+-",sMstar,"Msun")
@@ -73,7 +73,7 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
     print( "radial Mstar error on mean: ",np.std(Ms)/np.sqrt(Nind_rad),"Msun")
 
         
-    vstar = np.sqrt(1.-cosi**2)*1E-3*np.sqrt( const.G.value  * Mstar * const.M_sun.value / RRs )
+    vstar = 1E-3*np.sqrt( const.G.value  * Mstar * const.M_sun.value / RRs )
     vstar[0]=0.
 
     plotmask = np.where( (rrs >= a_min) & (rrs <= a_max) )

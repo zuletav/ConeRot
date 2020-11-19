@@ -688,7 +688,7 @@ def exec_conicpolar_expansions(M):
         if (M.DoErrorMap): 
             w_vec=weights[irrs,:]
         else:
-            w_vec=1/typicalerror**2
+            w_vec=np.ones(len(v0_vec))/typicalerror**2
 
         mask=(w_vec < 1E-10)
         w_vec_nozeros=w_vec
@@ -886,7 +886,8 @@ def exec_conicpolar_expansions(M):
         MeridAmps[irrs] = MeridAmp
         sMeridAmps[irrs] = sMeridAmp
         if (DoMerid):
-            v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad) * MeridAmp*np.cos(M.inc)
+            # v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad) * MeridAmp*np.cos(M.inc)
+            v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad) +  MeridAmp
             im_polar_av[irrs,:] = v0_vec_av + vsyst           
         elif (DoAccr):
             v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad)
@@ -896,21 +897,21 @@ def exec_conicpolar_expansions(M):
             im_polar_av[irrs,:] = v0_vec_av + vsyst
 
 
-    v_Phi_prof = KepAmps
-    sv_Phi_prof = sKepAmps
+    v_Phi_prof = KepAmps / np.sin(M.inc)
+    sv_Phi_prof = sKepAmps / np.sin(M.inc)
     v_Phi_prof = np.nan_to_num(v_Phi_prof)
     sv_Phi_prof = np.nan_to_num(sv_Phi_prof)
 
     #v_Phi_prof[np.isnan(v_Phi_prof)]=0.
     #sv_Phi_prof[np.isnan(sv_Phi_prof)]=0.
     
-    v_R_prof = AccrAmps
-    sv_R_prof = sAccrAmps
+    v_R_prof = AccrAmps / np.sin(M.inc)
+    sv_R_prof = sAccrAmps / np.sin(M.inc)
     v_R_prof = np.nan_to_num(v_R_prof)
     sv_R_prof = np.nan_to_num(sv_R_prof) 
     
-    v_z_prof = MeridAmps
-    sv_z_prof = sMeridAmps
+    v_z_prof = - MeridAmps / np.cos(M.inc)
+    sv_z_prof = sMeridAmps / np.cos(M.inc)
     v_z_prof = np.nan_to_num(v_z_prof)
     sv_z_prof = np.nan_to_num(sv_z_prof) 
 

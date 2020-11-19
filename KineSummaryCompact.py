@@ -564,7 +564,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
                 filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu$Jy/pix',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu$Jy/pix',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side)
 
 
 
