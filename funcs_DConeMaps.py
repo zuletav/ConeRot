@@ -885,6 +885,7 @@ def exec_conicpolar_expansions(M):
         sAccrAmps[irrs] = sAccrAmp
         MeridAmps[irrs] = MeridAmp
         sMeridAmps[irrs] = sMeridAmp
+
         if (DoMerid):
             # v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad) * MeridAmp*np.cos(M.inc)
             v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad) +  MeridAmp
@@ -910,7 +911,7 @@ def exec_conicpolar_expansions(M):
     v_R_prof = np.nan_to_num(v_R_prof)
     sv_R_prof = np.nan_to_num(sv_R_prof) 
     
-    v_z_prof = - MeridAmps / np.cos(M.inc)
+    v_z_prof =  - MeridAmps / np.cos(M.inc)
     sv_z_prof = sMeridAmps / np.cos(M.inc)
     v_z_prof = np.nan_to_num(v_z_prof)
     sv_z_prof = np.nan_to_num(sv_z_prof) 
