@@ -719,7 +719,11 @@ def exec_Regions(M,OptimM):
     fileout_imnorm_faceon=re.sub('fullim.fits', 'imregions_faceon.fits', filename_fullim)
     pf.writeto(fileout_imnorm_faceon,im_norm_faceon, hdr_c, overwrite=True)
 
-    im_c_w=M.Hduwcentered.data # _c -> centered
+    if M.DoErrorMap:
+        im_c_w=M.Hduwcentered.data # _c -> centered
+    else:
+        im_c_w=np.ones(im_c.shape)*(1/M.typicalerror**2)
+
     regionsmask=np.where(im_norm_faceon > 0.9)
     chi2regions=np.sum( im_c_w[regionsmask]*(imdiff_faceon[regionsmask])**2)/M.Ncorr
     M.fout.write("chi2regions=%.6e\n" % (chi2regions))

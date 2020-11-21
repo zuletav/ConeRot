@@ -271,7 +271,7 @@ def exec_prep_files(M):
     print( "applied unit scale factor:",M.unitscale)
     hdr1=hdu[0].header
         
-    typicalerror=M.ExpectedError
+    typicalerror=M.typicalerror
     if (M.InjectNoise):
         print( "INJECTING NOISE")
         im1=im1 + np.random.normal(loc=0.0, scale=typicalerror, size=im1.shape)
@@ -319,7 +319,7 @@ def exec_prep_files(M):
 
         if (M.Verbose):
             print( "resamp errors: max",np.max(imerr)," min ",np.min(imerr))
-            print( "typicalerror= ",typicalerror," vs", M.ExpectedError)
+            print( "typicalerror= ",typicalerror," vs", M.typicalerror)
 
             
         if (DumpAllFitsFiles):
@@ -471,7 +471,7 @@ def exec_conicpolar_expansions(M):
     PlotRadialProfile=M.PlotRadialProfile
     a_min=M.a_min
     a_max=M.a_max
-    ExpectedError=M.ExpectedError
+    typicalerror=M.typicalerror
     InjectNoise=M.InjectNoise
     DumpAllFitsFiles=M.DumpAllFitsFiles
     DoDCone=M.DoDCone
@@ -483,7 +483,7 @@ def exec_conicpolar_expansions(M):
     hdu=M.Hducentered
     hduw=M.Hduwcentered
 
-    typicalerror=ExpectedError
+    #typicalerror=ExpectedError
 
 
     
@@ -753,10 +753,19 @@ def exec_conicpolar_expansions(M):
                     sigmaA= np.sqrt( vard_1*(b_2*c_3 - b_3*c_2)**2 + vard_2*(c_1*b_3 - b_1*c_3)**2 + vard_3*(b_1*c_2-c_1*b_2)**2)/detM
 
                     B= (d_1 * (a_3*c_2 - a_2*c_3) + d_2 *(a_1*c_3 - c_1*a_3) + d_3 * (c_1*a_2 - a_1*c_2))/detM
+
+                    #Bcheck = (a_1 * ( d_2 *c_3 - d_3 * c_2) - d_1 * (a_2 * c_3 - a_3 * c_2) + c_1 * (a_2 * d_3 - a_3 * d_2)) /detM
+
+                              
                     sigmaB= np.sqrt( vard_1*(a_3*c_2 - a_2*c_3)**2 + vard_2*(a_1*c_3 - c_1*a_3)**2 + vard_3*(c_1*a_2-a_1*c_2)**2)/detM
 
                     C= (d_1 * (a_2*b_3 - a_3*b_2) + d_2 * (b_1*a_3 - a_1*b_3) + d_3 * (a_1*b_2-b_1*a_2))/detM
                     sigmaC= np.sqrt(vard_1 * (a_2*b_3 - a_3*b_2)**2 + vard_2 * (b_1*a_3 - a_1*b_3)**2 + vard_3 * (a_1*b_2-b_1*a_2)**2)/detM
+
+                    #if (np.fabs((Bcheck-B)/B) > 1E-8) :
+                    #    print("A ",A," C" ,C)
+                    #    print("B ",B,"Bcheck",Bcheck)
+                    #    sys.exit("check algebra ")
 
                     KepAmp = A
                     sKepAmp = sigmaA
@@ -897,6 +906,9 @@ def exec_conicpolar_expansions(M):
             v0_vec_av = KepAmp * np.cos(phis_rad)
             im_polar_av[irrs,:] = v0_vec_av + vsyst
 
+
+    # SIGNS CALIBRATED ON THE RT TRIALS WIGGLERT
+    # /strelka_ssd/simon/wiggleRT/
 
     v_Phi_prof = KepAmps / np.sin(M.inc)
     sv_Phi_prof = sKepAmps / np.sin(M.inc)

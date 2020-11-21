@@ -50,7 +50,7 @@ class Model():
                  fieldscale=1.0,
                  pixscale_factor=1.,
                  unitscale=1.,
-                 ExpectedError=1E-2,
+                 typicalerror=1E-2,
                  InjectNoise=True,
                  PrintOptimStatus=True,
                  DumpAllFitsFiles=False,
