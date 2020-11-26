@@ -479,6 +479,8 @@ def exec_conicpolar_expansions(M):
     fieldscale=M.fieldscale # shrink radial field of view of polar maps by this factor
     DoAccr=M.DoAccr
     DoMerid=M.DoMerid
+
+    DoFarSideOnly=M.DoFarSideOnly
     
     hdu=M.Hducentered
     hduw=M.Hduwcentered
@@ -698,7 +700,7 @@ def exec_conicpolar_expansions(M):
         w_vec[mask]=0.
                 
         thisradius=rrs[irrs] #arcsec
-        cosi=np.cos(M.inc)
+        # cosi=np.cos(M.inc)
         #Nind=2.*np.pi*thisradius * np.fabs(cosi) /(M.bmaj) # aprox number of beams at each radius
         Nind=2.*np.pi*thisradius /(M.bmaj) # aprox number of beams at each radius
         Nsum=len(w_vec)
@@ -725,24 +727,36 @@ def exec_conicpolar_expansions(M):
                     AccrAmp = 0. 
             else:
                 Cramer = True
+                    
                 if (DoMerid and Cramer):
-                    sinphis = np.sin(phis_rad)
-                    cosphis = np.cos(phis_rad)
-                    a_1 = np.sum(w_vec * cosphis**2)
-                    b_1 = np.sum(w_vec * sinphis * cosphis)
-                    c_1 = np.sum(w_vec * cosphis)
-                    d_1 = np.sum(w_vec * cosphis * v0_vec)
-                    vard_1 = np.sum(w_vec * cosphis**2)
+                    if (np.any(phis_rad < 0.)):
+                        sys.exit("negative phis_rad")
+
+                    maskphis=(phis_rad >=0.)
+                    if DoFarSideOnly:
+                        maskphis = ((phis_rad >0.) & (phis_rad <np.pi))
+                    subw_vec=w_vec[maskphis]
+                    subv0_vec= v0_vec[maskphis]
+                    subphis_rad=phis_rad[maskphis]
+                        
+
+                    sinphis = np.sin(subphis_rad)
+                    cosphis = np.cos(subphis_rad)
+                    a_1 = np.sum(subw_vec * cosphis**2)
+                    b_1 = np.sum(subw_vec * sinphis * cosphis)
+                    c_1 = np.sum(subw_vec * cosphis)
+                    d_1 = np.sum(subw_vec * cosphis * subv0_vec)
+                    vard_1 = np.sum(subw_vec * cosphis**2)
                     a_2 = b_1
-                    b_2 = np.sum(w_vec * sinphis**2)
-                    c_2 = np.sum(w_vec * sinphis)
-                    d_2 = np.sum(w_vec * sinphis * v0_vec)
-                    vard_2 = np.sum(w_vec * sinphis**2)
+                    b_2 = np.sum(subw_vec * sinphis**2)
+                    c_2 = np.sum(subw_vec * sinphis)
+                    d_2 = np.sum(subw_vec * sinphis * subv0_vec)
+                    vard_2 = np.sum(subw_vec * sinphis**2)
                     a_3 = c_1
                     b_3 = c_2
-                    c_3 = np.sum(w_vec)
-                    d_3 = np.sum(w_vec * v0_vec)
-                    vard_3 = np.sum(w_vec)
+                    c_3 = np.sum(subw_vec)
+                    d_3 = np.sum(subw_vec * subv0_vec)
+                    vard_3 = np.sum(subw_vec)
 
                     detM = a_1*(b_2*c_3 - b_3*c_2) - b_1*(a_2*c_3 - a_3*c_2) + c_1*(a_2*b_3 - a_3*b_2)
                     if (detM == 0.):
@@ -908,23 +922,33 @@ def exec_conicpolar_expansions(M):
 
 
     # SIGNS CALIBRATED ON THE RT TRIALS WIGGLERT
+    # beware when flipping across the sky as observer sees the cone with psi < 0, with z<0, where a wind would have v_z < 0 in disk coordinates.
     # /strelka_ssd/simon/wiggleRT/
-
-    v_Phi_prof = KepAmps / np.sin(M.inc)
-    sv_Phi_prof = sKepAmps / np.sin(M.inc)
+    sini=np.sin(M.inc)
+    cosi=np.cos(M.inc)
+    if (np.fabs(M.inc) > (np.pi/2.)):
+        # this fabs to report values for the upper side z>0 of the disk even when retrograde
+        # cosi=np.fabs(np.cos(M.inc))
+        # best not to do change the results, and instead take care when reporting in RotOrient
+        cosi=np.cos(M.inc)
+        
+        
+    
+    v_Phi_prof = KepAmps / sini
+    sv_Phi_prof = sKepAmps / np.fabs(sini)
     v_Phi_prof = np.nan_to_num(v_Phi_prof)
     sv_Phi_prof = np.nan_to_num(sv_Phi_prof)
 
     #v_Phi_prof[np.isnan(v_Phi_prof)]=0.
     #sv_Phi_prof[np.isnan(sv_Phi_prof)]=0.
     
-    v_R_prof = AccrAmps / np.sin(M.inc)
-    sv_R_prof = sAccrAmps / np.sin(M.inc)
+    v_R_prof = AccrAmps / sini
+    sv_R_prof = sAccrAmps / np.fabs(sini)
     v_R_prof = np.nan_to_num(v_R_prof)
     sv_R_prof = np.nan_to_num(sv_R_prof) 
     
-    v_z_prof =  - MeridAmps / np.cos(M.inc)
-    sv_z_prof = sMeridAmps / np.cos(M.inc)
+    v_z_prof =  - MeridAmps / cosi
+    sv_z_prof = sMeridAmps / np.fabs(cosi)
     v_z_prof = np.nan_to_num(v_z_prof)
     sv_z_prof = np.nan_to_num(sv_z_prof) 
 

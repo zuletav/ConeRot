@@ -93,7 +93,8 @@ class Model():
                  RadialProfile=None,
                  bmaj=0.07, # arcsec
                  bmin=0.07, # arcsec
-                 Ncorr=1.,  # dimensionless 
+                 Ncorr=1.,  # dimensionless
+                 DoFarSideOnly=False,
                  TriangleFile='triangle.png'):
 
         

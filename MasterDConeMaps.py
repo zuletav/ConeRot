@@ -65,6 +65,7 @@ class Setup():
                  DoDCone=False,
                  InheritMumap=False,  # pass mumap from a previous orientation - used as weights in KepAmps
                  StoreRegions=False,
+                 DoFarSideOnly=False,
                  exec_master_script='exec_master.py'):
 
 
@@ -171,9 +172,9 @@ class Setup():
 
         return
 
+
     
-    
-    def RunFixOrient(self):
+    def RunFixOrient(self,ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.):
         file_log=self.workdir+'log_output.txt'
         print("loading file_log",file_log)
         fin= open(file_log,"r")
@@ -209,6 +210,14 @@ class Setup():
         PA=allradsPA
         inc=allradsinc
         tanpsi=allradstanpsi
+        if ForceGlobalOrient:
+            print(">>>>>> Doing Fix Orient, with forced global orientation, at PA=",Force_allradsPA," inc=",Force_allradsinc)
+
+            PA=Force_allradsPA
+            inc=Force_allradsinc
+            
+
+        
         # print( "global chi2:",chi2allrads)
         print( "using global PA:",PA)
         print( "using global inc:",inc)

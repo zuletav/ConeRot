@@ -65,7 +65,7 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
 
     plt.setp(axprofile.get_xticklabels(),visible=False) #, fontsize=6)
 
-    return
+    return (ymin,ymax)
 
 
 def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=False,label=''):
@@ -90,13 +90,13 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
 
 
 
-    axprofile.plot(rrs_fixincPA[plotmask],v_R_prof_fixincPA[plotmask]*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max),color='red',linewidth=1.5,linestyle='solid',label=r'$v_R$')
+    axprofile.plot(rrs_fixincPA[plotmask],v_R_prof_fixincPA[plotmask]*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max),color='C0',linewidth=1.5,linestyle='solid',label=r'$v_R$')
     axprofile.set_ylabel(r'$\sqrt{r/'+str(a_max)+'} \\times \\tilde{v}_{R}(r)$ / km s$^{-1}$')
 
     #print( "wcols v_R")
     #print((np.array(zip(rrs_fixincPA[plotmask],v_R_prof_fixincPA[plotmask]+sv_R_prof_fixincPA[plotmask]))))
 
-    axprofile.fill_between(rrs_fixincPA[plotmask], (v_R_prof_fixincPA[plotmask]+sv_R_prof_fixincPA[plotmask])*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max), (v_R_prof_fixincPA[plotmask]-sv_R_prof_fixincPA[plotmask])*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max), lw=0.1,color='red', alpha=0.2, interpolate=True) #, step='mid'
+    axprofile.fill_between(rrs_fixincPA[plotmask], (v_R_prof_fixincPA[plotmask]+sv_R_prof_fixincPA[plotmask])*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max), (v_R_prof_fixincPA[plotmask]-sv_R_prof_fixincPA[plotmask])*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max), lw=0.1,color='C0', alpha=0.2, interpolate=True) #, step='mid'
 
 
     if (label != ''):
@@ -118,14 +118,17 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
             axprofile.plot([argap, argap],[ymin,ymax],color='black',linewidth=0.5,linestyle='dotted')
 
 
-    return
+    return (ymin,ymax)
 
 
 
 
-def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,ContinuumGaps=False,label=''):
+def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=False,ContinuumGaps=False,label=''):
 
 
+    if BackSide:
+        v_z_prof_fixincPA *= -1
+    
     rmax=np.max(rrs_fixincPA)
 
     sv_z_prof_fixincPA=np.nan_to_num(sv_z_prof_fixincPA)
@@ -137,21 +140,27 @@ def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixin
     #from pprint import pprint
     
     #pprint( list(zip(rrs_fixincPA, sv_R_prof_fixincPA, maskrange) ))
+
+    #print(">>>>> median error:",np.median(sv_z_prof_fixincPA[maskrange]))
+    #print(">>>>> median values:",np.median(v_z_prof_fixincPA[maskrange]))
     
 
-    
     ymin=1.01*np.min((v_z_prof_fixincPA[maskrange] - sv_z_prof_fixincPA[maskrange]) * (np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max)))
     ymax=1.01*np.max((v_z_prof_fixincPA[maskrange] + sv_z_prof_fixincPA[maskrange]) * (np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max)))
 
-
-
-    axprofile.plot(rrs_fixincPA[plotmask],v_z_prof_fixincPA[plotmask]*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max),color='red',linewidth=1.5,linestyle='solid',label=r'$v_z$')
-    axprofile.set_ylabel(r'$\sqrt{r/'+str(a_max)+'} \\times \\tilde{v}_{z}(r)$ / km s$^{-1}$')
+          
+    axprofile.plot(rrs_fixincPA[plotmask],v_z_prof_fixincPA[plotmask]*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max),color='C0',linewidth=1.5,linestyle='solid',label=r'$v_z$')
+    if BackSide:
+        prefix=r'$-$'
+    else:
+        prefix=''
+        
+    axprofile.set_ylabel(prefix+r'$\sqrt{r/'+str(a_max)+'} \\times \\tilde{v}_{z}(r)$ / km s$^{-1}$')
 
     #print( "wcols v_z")
     #print((np.array(zip(rrs_fixincPA[plotmask],v_z_prof_fixincPA[plotmask]+sv_z_prof_fixincPA[plotmask]))))
 
-    axprofile.fill_between(rrs_fixincPA[plotmask], (v_z_prof_fixincPA[plotmask]+sv_z_prof_fixincPA[plotmask])*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max), (v_z_prof_fixincPA[plotmask]-sv_z_prof_fixincPA[plotmask])*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max), lw=0.1,color='red', alpha=0.2, interpolate=True) #, step='mid'
+    axprofile.fill_between(rrs_fixincPA[plotmask], (v_z_prof_fixincPA[plotmask]+sv_z_prof_fixincPA[plotmask])*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max), (v_z_prof_fixincPA[plotmask]-sv_z_prof_fixincPA[plotmask])*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max), lw=0.1,color='C0', alpha=0.2, interpolate=True) #, step='mid'
 
 
     if (label != ''):
@@ -171,6 +180,8 @@ def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixin
     if (ContinuumGaps):
         for argap in ContinuumGaps:
             axprofile.plot([argap, argap],[ymin,ymax],color='black',linewidth=0.5,linestyle='dotted')
+            
+    print(">>>>> v_z ::",ymin,ymax)
 
 
-    return
+    return (ymin,ymax)
