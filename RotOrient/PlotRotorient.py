@@ -212,7 +212,12 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if RunMCMC:
         print("picked up MCMC run")
-        [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, PAs_MCMC, tanpsis_MCMC, incs_MCMC, allradsPAMCMC, allradsincMCMC,allradstanpsiMCMC] = proflist
+        [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, PAs_MCMC, tanpsis_MCMC, incs_MCMC, allradsPAMCMC, allradsincMCMC,allradspsiMCMC] = proflist
+
+        allradsinc=allradsincMCMC
+        allradsPA=allradsPAMCMC
+        allradspsi=allradspsiMCMC
+
     else:
         [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi] = proflist
 
@@ -240,6 +245,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     psierrors=np.zeros((2,len(psis)))
     if RunMCMC:
         for ir,atanpsi in enumerate(tanpsis_MCMC):
+            psis[ir]=180.*np.arctan(atanpsi[0])/np.pi
+                          
             psierrors[1,ir]=180.*(np.arctan(atanpsi[1]+atanpsi[0])-np.arctan(atanpsi[0]))/np.pi
             psierrors[0,ir]=180.*(np.arctan(atanpsi[0])-np.arctan(atanpsi[0]-atanpsi[2]))/np.pi
 
@@ -248,12 +255,14 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     if RunMCMC:
         for ir,ainc in enumerate(incs_MCMC):
             #print( "ainc",ainc)
+            incs[ir]=ainc[0]*180./np.pi
             incerrors[1,ir]=1.*ainc[1]*180./np.pi
             incerrors[0,ir]=1.*ainc[2]*180./np.pi
 
     PAerrors=np.zeros((2,len(PAs)))
     if RunMCMC:
         for ir,aPA in enumerate(PAs_MCMC):
+            PAs[ir]=aPA[0]
             PAerrors[1,ir]=1.*aPA[1]
             PAerrors[0,ir]=1.*aPA[2]
 
@@ -264,7 +273,10 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     if VarOrient:
         axprofile = fig.add_subplot(gs[(nplotsy-1),0])
 
-    if PlotVarPAinc:    
+    if PlotVarPAinc:
+        print("rregions",rregions)
+        print("PAs",PAs)
+        
         (ymin, ymax) = Orient.PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allradsinc,incerrors, psis, allradspsi, psierrors)
 
 
@@ -312,6 +324,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         if RunMCMC:
             #print( "psis_fixincPA MCMC", tanpsis_fixincPA_MCMC)
             for ir,atanpsi in enumerate(tanpsis_fixincPA_MCMC):
+                psis_fixincPA[ir]=180.*np.arctan(atanpsi[0])/np.pi
                 psierrors_fixincPA[1,ir]=180.*(np.arctan(atanpsi[1]+atanpsi[0])-np.arctan(atanpsi[0]))/np.pi
                 psierrors_fixincPA[0,ir]=180.*(np.arctan(atanpsi[0])-np.arctan(atanpsi[0]-atanpsi[2]))/np.pi
 
@@ -532,7 +545,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
         axprofile = fig.add_subplot(gs[jpos,0])
         alabel=r'fix $i$, PA region av.'
-        alabel=''
+        # alabel=''
         (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel)
         if WithComparData:
             # Rich Teague data

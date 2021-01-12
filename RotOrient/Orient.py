@@ -27,6 +27,8 @@ def PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allrad
     thislabel = r'$i-%.1f^\circ$'  %  allradsinc 
     axprofile.plot(rregions,(incs-allradsinc),linewidth=1.,linestyle='solid',color='C2',label=thislabel,marker='o',markersize=4.)
     #print( "inc errors:",incerrors)
+
+    
     axprofile.fill_between(rregions, (incs-allradsinc)+incerrors[1,:], (incs-allradsinc)-incerrors[0,:],lw=0.1,color='C2', alpha=0.2, interpolate=True) #, step='mid'
 
     #print(  "incerrors",incerrors[1,:])

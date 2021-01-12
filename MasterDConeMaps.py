@@ -183,6 +183,8 @@ class Setup():
         
         AllRads=False
         AllRadsMCMC=False
+        emcee_posterior=False
+
         self.DoAccr=self.DoAccr_fixPAinc
         self.DoMerid=self.DoMerid_fixPAinc
         for aline in log_output:
@@ -197,6 +199,10 @@ class Setup():
                 allradsPAMCMC=float(matches.group(1))
                 allradsincMCMC=float(matches.group(2)) # *180./np.pi
                 allradstanpsiMCMC=float(matches.group(3))
+
+                allradsPA=allradsPAMCMC
+                allradsinc=allradsincMCMC
+                
                 AllRadsMCMC=False
             if "Global" in aline:
                 AllRads=True
@@ -207,9 +213,38 @@ class Setup():
             #    matches = re.search("^chi2=(.*)$",aline)
             #    chi2allrads=float(matches.group(1))
 
+            if emcee_posterior:
+                matches = re.search("^PA ->\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
+                #matches = re.search("^PA ->\s+(\w+)\s+(\w+)\s+(\w+)\s*$",aline)
+                if (matches):
+                    aPA_post=matches.group(1)
+                    aPA_upsigma=matches.group(2)
+                    aPA_downsigma=matches.group(3)
+                    PA_MCMC=[float(aPA_post),float(aPA_upsigma),float(aPA_downsigma)]
+                    allradsPA=PA_MCMC[0]
+                matches = re.search("^inc ->\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
+                if (matches):
+                    ainc_post=matches.group(1)
+                    ainc_upsigma=matches.group(2)
+                    ainc_downsigma=matches.group(3)
+                    inc_MCMC=[float(ainc_post),float(ainc_upsigma),float(ainc_downsigma)]
+                    allradsinc=inc_MCMC[0]
+                matches = re.search("^tanpsi ->\s+(\-?\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
+                if (matches):
+                    atanpsi_post=matches.group(1)
+                    atanpsi_upsigma=matches.group(2)
+                    atanpsi_downsigma=matches.group(3)
+                    tanpsi_MCMC=[float(atanpsi_post),float(atanpsi_upsigma),float(atanpsi_downsigma)]
+                    allradtanpsi=tanpsi_MCMC[0]
+                emcee_posterior=False
+            if ("emcee posterior" in aline):
+                emcee_posterior=True
+
+
         PA=allradsPA
         inc=allradsinc
         tanpsi=allradstanpsi
+        
         if ForceGlobalOrient:
             print(">>>>>> Doing Fix Orient, with forced global orientation, at PA=",Force_allradsPA," inc=",Force_allradsinc)
 
