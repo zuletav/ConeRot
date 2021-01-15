@@ -175,82 +175,84 @@ class Setup():
 
     
     def RunFixOrient(self,ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.):
-        file_log=self.workdir+'log_output.txt'
-        print("loading file_log",file_log)
-        fin= open(file_log,"r")
-        log_output=fin.readlines()
-        fin.close
-        
-        AllRads=False
-        AllRadsMCMC=False
-        emcee_posterior=False
 
         self.DoAccr=self.DoAccr_fixPAinc
         self.DoMerid=self.DoMerid_fixPAinc
-        for aline in log_output:
-            if AllRads:
-                matches = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*) $",aline)
-                allradsPA=float(matches.group(1))
-                allradsinc=float(matches.group(2)) # *180./np.pi
-                allradstanpsi=float(matches.group(3))
-                AllRads=False
-            if AllRadsMCMC:
-                matches = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*) $",aline)
-                allradsPAMCMC=float(matches.group(1))
-                allradsincMCMC=float(matches.group(2)) # *180./np.pi
-                allradstanpsiMCMC=float(matches.group(3))
+        if (not ForceGlobalOrient):
+            file_log=self.workdir+'log_output.txt'
+            print("loading file_log",file_log)
+            fin= open(file_log,"r")
+            log_output=fin.readlines()
+            fin.close
+            
+            AllRads=False
+            AllRadsMCMC=False
+            emcee_posterior=False
 
-                allradsPA=allradsPAMCMC
-                allradsinc=allradsincMCMC
-                
-                AllRadsMCMC=False
-            if "Global" in aline:
-                AllRads=True
-            if "Global MCMC" in aline:
-                AllRadsMCMC=True
-            #if "chi2" in aline:
-            #    print("chi2 in aline",aline)
-            #    matches = re.search("^chi2=(.*)$",aline)
-            #    chi2allrads=float(matches.group(1))
+            for aline in log_output:
+                if AllRads:
+                    matches = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*) $",aline)
+                    allradsPA=float(matches.group(1))
+                    allradsinc=float(matches.group(2)) # *180./np.pi
+                    allradstanpsi=float(matches.group(3))
+                    AllRads=False
+                if AllRadsMCMC:
+                    matches = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*) $",aline)
+                    allradsPAMCMC=float(matches.group(1))
+                    allradsincMCMC=float(matches.group(2)) # *180./np.pi
+                    allradstanpsiMCMC=float(matches.group(3))
 
-            if emcee_posterior:
-                matches = re.search("^PA ->\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
-                #matches = re.search("^PA ->\s+(\w+)\s+(\w+)\s+(\w+)\s*$",aline)
-                if (matches):
-                    aPA_post=matches.group(1)
-                    aPA_upsigma=matches.group(2)
-                    aPA_downsigma=matches.group(3)
-                    PA_MCMC=[float(aPA_post),float(aPA_upsigma),float(aPA_downsigma)]
-                    allradsPA=PA_MCMC[0]
-                matches = re.search("^inc ->\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
-                if (matches):
-                    ainc_post=matches.group(1)
-                    ainc_upsigma=matches.group(2)
-                    ainc_downsigma=matches.group(3)
-                    inc_MCMC=[float(ainc_post),float(ainc_upsigma),float(ainc_downsigma)]
-                    allradsinc=inc_MCMC[0]
-                matches = re.search("^tanpsi ->\s+(\-?\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
-                if (matches):
-                    atanpsi_post=matches.group(1)
-                    atanpsi_upsigma=matches.group(2)
-                    atanpsi_downsigma=matches.group(3)
-                    tanpsi_MCMC=[float(atanpsi_post),float(atanpsi_upsigma),float(atanpsi_downsigma)]
-                    allradtanpsi=tanpsi_MCMC[0]
-                emcee_posterior=False
-            if ("emcee posterior" in aline):
-                emcee_posterior=True
+                    allradsPA=allradsPAMCMC
+                    allradsinc=allradsincMCMC
+
+                    AllRadsMCMC=False
+                if "Global" in aline:
+                    AllRads=True
+                if "Global MCMC" in aline:
+                    AllRadsMCMC=True
+                #if "chi2" in aline:
+                #    print("chi2 in aline",aline)
+                #    matches = re.search("^chi2=(.*)$",aline)
+                #    chi2allrads=float(matches.group(1))
+
+                if emcee_posterior:
+                    matches = re.search("^PA ->\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
+                    #matches = re.search("^PA ->\s+(\w+)\s+(\w+)\s+(\w+)\s*$",aline)
+                    if (matches):
+                        aPA_post=matches.group(1)
+                        aPA_upsigma=matches.group(2)
+                        aPA_downsigma=matches.group(3)
+                        PA_MCMC=[float(aPA_post),float(aPA_upsigma),float(aPA_downsigma)]
+                        allradsPA=PA_MCMC[0]
+                    matches = re.search("^inc ->\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
+                    if (matches):
+                        ainc_post=matches.group(1)
+                        ainc_upsigma=matches.group(2)
+                        ainc_downsigma=matches.group(3)
+                        inc_MCMC=[float(ainc_post),float(ainc_upsigma),float(ainc_downsigma)]
+                        allradsinc=inc_MCMC[0]
+                    matches = re.search("^tanpsi ->\s+(\-?\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
+                    if (matches):
+                        atanpsi_post=matches.group(1)
+                        atanpsi_upsigma=matches.group(2)
+                        atanpsi_downsigma=matches.group(3)
+                        tanpsi_MCMC=[float(atanpsi_post),float(atanpsi_upsigma),float(atanpsi_downsigma)]
+                        allradtanpsi=tanpsi_MCMC[0]
+                    emcee_posterior=False
+                if ("emcee posterior" in aline):
+                    emcee_posterior=True
 
 
-        PA=allradsPA
-        inc=allradsinc
-        tanpsi=allradstanpsi
-        
-        if ForceGlobalOrient:
+            PA=allradsPA
+            inc=allradsinc
+            tanpsi=allradstanpsi
+
+        else:
             print(">>>>>> Doing Fix Orient, with forced global orientation, at PA=",Force_allradsPA," inc=",Force_allradsinc)
 
             PA=Force_allradsPA
             inc=Force_allradsinc
-            
+            tanpsi=self.tanpsi
 
         
         # print( "global chi2:",chi2allrads)

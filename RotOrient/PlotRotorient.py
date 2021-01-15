@@ -92,78 +92,83 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         DoFixIncPA=True
 
 
+    if (fileout_fig == 'default'):
+        fileout_fig=workdir_fixincPA+'fig_rotorient_surfandmid_linear_full.pdf'
+        
     file_profile=workdir+nametag+'_radial_profile.dat'
     file_profile_allrads=workdir+nametag+'_allrads_radial_profile.dat'
     file_profile_fixincPA=workdir_fixincPA+nametag+'_radial_profile.dat'
     file_profile_fixincPA_allrads=workdir_fixincPA+nametag+'_allrads_radial_profile.dat'
 
-    if (fileout_fig == 'default'):
-        fileout_fig=workdir_fixincPA+'fig_rotorient_surfandmid_linear_full.pdf'
-        
     print("loading file_profiles",file_profile," ",file_profile_fixincPA)
-
-    allprofiles=np.loadtxt(file_profile,unpack=True)
-    print("length allprofiles",len(allprofiles))
 
     DoMerid=False
     DoAccr=False
-    if (len(allprofiles) > 5):
-        (rrs, v_Phi_prof, sv_Phi_prof, v_R_prof, sv_R_prof, v_z_prof, sv_z_prof) = allprofiles # np.loadtxt(file_profile,unpack=True)
-        DoMerid=True
-        print("WARNING: found DoMerid optimization for global optim (no regions)  but will plot v_R averaged over regions (allrads)")
-    elif (len(allprofiles) > 3):
-        (rrs, v_Phi_prof, sv_Phi_prof, v_R_prof, sv_R_prof) = allprofiles # np.loadtxt(file_profile,unpack=True)
-        DoAccr=True
-        print("WARNING: found DoAccr optimization for global optim (no regions)  but will plot v_R averaged over regions (allrads)")
-    else:
-        (rrs, v_Phi_prof, sv_Phi_prof) = np.loadtxt(file_profile,unpack=True)
+    if os.path.isfile(file_profile):
+        
+        allprofiles=np.loadtxt(file_profile,unpack=True)
+        print("length allprofiles",len(allprofiles))
+        
+        if (len(allprofiles) > 5):
+            (rrs, v_Phi_prof, sv_Phi_prof, v_R_prof, sv_R_prof, v_z_prof, sv_z_prof) = allprofiles # np.loadtxt(file_profile,unpack=True)
+            DoMerid=True
+            print("WARNING: found DoMerid optimization for global optim (no regions)  but will plot v_R averaged over regions (allrads)")
+        elif (len(allprofiles) > 3):
+            (rrs, v_Phi_prof, sv_Phi_prof, v_R_prof, sv_R_prof) = allprofiles # np.loadtxt(file_profile,unpack=True)
+            DoAccr=True
+            print("WARNING: found DoAccr optimization for global optim (no regions)  but will plot v_R averaged over regions (allrads)")
+        else:
+            (rrs, v_Phi_prof, sv_Phi_prof) = np.loadtxt(file_profile,unpack=True)
 
     DoMeridAllRads=False
     DoAccrAllRads=False
-    if VarOrient:
-        allprofiles_allrads=np.loadtxt(file_profile_allrads,unpack=True)
-        print("length allprofiles",len(allprofiles_allrads))
-        if (len(allprofiles) > 5):
-            (rrs_allrads, v_Phi_prof_allrads, sv_Phi_prof_allrads, v_R_prof_allrads, sv_R_prof_allrads, v_z_prof_allrads, sv_z_prof_allrads) = allprofiles_allrads # np.loadtxt(file_profile,unpack=True)
-            DoMeridAllRads=True
-            print("WARNING: found DoMerid optimization with variable PA and inc, could be degenerate")
-        elif (len(allprofiles_allrads) > 3):
-            (rrs_allrads, v_Phi_prof_allrads, sv_Phi_prof_allrads, v_R_prof_allrads, sv_R_prof_allrads) = allprofiles_allrads
-            DoAccrAllRads=True
-            print("WARNING: found DoAccr optimization with variable PA and inc, could be degenerate")
-        else:
-            (rrs_allrads, v_Phi_prof_allrads, sv_Phi_prof_allrads) = np.loadtxt(file_profile_allrads,unpack=True)
-            DoAccrAllRads=False
+    if os.path.isfile(file_profile_allrads):
+
+        if VarOrient:
+            allprofiles_allrads=np.loadtxt(file_profile_allrads,unpack=True)
+            print("length allprofiles",len(allprofiles_allrads))
+            if (len(allprofiles) > 5):
+                (rrs_allrads, v_Phi_prof_allrads, sv_Phi_prof_allrads, v_R_prof_allrads, sv_R_prof_allrads, v_z_prof_allrads, sv_z_prof_allrads) = allprofiles_allrads # np.loadtxt(file_profile,unpack=True)
+                DoMeridAllRads=True
+                print("WARNING: found DoMerid optimization with variable PA and inc, could be degenerate")
+            elif (len(allprofiles_allrads) > 3):
+                (rrs_allrads, v_Phi_prof_allrads, sv_Phi_prof_allrads, v_R_prof_allrads, sv_R_prof_allrads) = allprofiles_allrads
+                DoAccrAllRads=True
+                print("WARNING: found DoAccr optimization with variable PA and inc, could be degenerate")
+            else:
+                (rrs_allrads, v_Phi_prof_allrads, sv_Phi_prof_allrads) = np.loadtxt(file_profile_allrads,unpack=True)
+                DoAccrAllRads=False
 
 
     DoAccr_fixIncPA=False
     DoMerid_fixIncPA=False
     DoAccrAllRads_fixIncPA=False
     DoMeridAllRads_fixIncPA=False
-    if DoFixIncPA:
-        allprofiles_fixincPA=np.loadtxt(file_profile_fixincPA,unpack=True)
-        print("length allprofiles fixincPA",len(allprofiles_fixincPA))
-        if (len(allprofiles_fixincPA) > 5):
-            (rrs_fixincPA, v_Phi_prof_fixincPA, sv_Phi_prof_fixincPA, v_R_prof_fixincPA, sv_R_prof_fixincPA, v_z_prof_fixincPA, sv_z_prof_fixincPA) = allprofiles_fixincPA # np.loadtxt(file_profile,unpack=True)
-            DoMerid_fixIncPA=True
-        elif (len(allprofiles_fixincPA) > 3):
-            (rrs_fixincPA, v_Phi_prof_fixincPA, sv_Phi_prof_fixincPA, v_R_prof_fixincPA, sv_R_prof_fixincPA) = allprofiles_fixincPA 
-            DoAccr_fixIncPA=True
-        else:
-            (rrs_fixincPA, v_Phi_prof_fixincPA, sv_Phi_prof_fixincPA) = allprofiles_fixincPA 
-            DoAccr_fixIncPA=False
-
-        if VarOrient:
-            allprofiles_fixincPA_allrads=np.loadtxt(file_profile_fixincPA_allrads,unpack=True)
-            print("length allprofiles fixincPA",len(allprofiles_fixincPA_allrads))
-            if (len(allprofiles_fixincPA_allrads) > 5):
-                (rrs_fixincPA_allrads, v_Phi_prof_fixincPA_allrads, sv_Phi_prof_fixincPA_allrads, v_R_prof_fixincPA_allrads, sv_R_prof_fixincPA_allrads, v_z_prof_fixincPA_allrads, sv_z_prof_fixincPA_allrads) = allprofiles_fixincPA_allrads
-                DoMeridAllRads_fixIncPA=True
-            elif (len(allprofiles_fixincPA_allrads) > 3):
-                (rrs_fixincPA_allrads, v_Phi_prof_fixincPA_allrads, sv_Phi_prof_fixincPA_allrads, v_R_prof_fixincPA_allrads, sv_R_prof_fixincPA_allrads) = allprofiles_fixincPA_allrads
-                DoAccrAllRads_fixIncPA=True
+    if os.path.isfile(file_profile_fixincPA):
+        if DoFixIncPA:
+            allprofiles_fixincPA=np.loadtxt(file_profile_fixincPA,unpack=True)
+            print("length allprofiles fixincPA",len(allprofiles_fixincPA))
+            if (len(allprofiles_fixincPA) > 5):
+                (rrs_fixincPA, v_Phi_prof_fixincPA, sv_Phi_prof_fixincPA, v_R_prof_fixincPA, sv_R_prof_fixincPA, v_z_prof_fixincPA, sv_z_prof_fixincPA) = allprofiles_fixincPA # np.loadtxt(file_profile,unpack=True)
+                DoMerid_fixIncPA=True
+            elif (len(allprofiles_fixincPA) > 3):
+                (rrs_fixincPA, v_Phi_prof_fixincPA, sv_Phi_prof_fixincPA, v_R_prof_fixincPA, sv_R_prof_fixincPA) = allprofiles_fixincPA 
+                DoAccr_fixIncPA=True
             else:
-                (rrs_fixincPA_allrads, v_Phi_prof_fixincPA_allrads, sv_Phi_prof_fixincPA_allrads) = allprofiles_fixincPA_allrads 
+                (rrs_fixincPA, v_Phi_prof_fixincPA, sv_Phi_prof_fixincPA) = allprofiles_fixincPA 
+                DoAccr_fixIncPA=False
+
+            if VarOrient:
+                allprofiles_fixincPA_allrads=np.loadtxt(file_profile_fixincPA_allrads,unpack=True)
+                print("length allprofiles fixincPA",len(allprofiles_fixincPA_allrads))
+                if (len(allprofiles_fixincPA_allrads) > 5):
+                    (rrs_fixincPA_allrads, v_Phi_prof_fixincPA_allrads, sv_Phi_prof_fixincPA_allrads, v_R_prof_fixincPA_allrads, sv_R_prof_fixincPA_allrads, v_z_prof_fixincPA_allrads, sv_z_prof_fixincPA_allrads) = allprofiles_fixincPA_allrads
+                    DoMeridAllRads_fixIncPA=True
+                elif (len(allprofiles_fixincPA_allrads) > 3):
+                    (rrs_fixincPA_allrads, v_Phi_prof_fixincPA_allrads, sv_Phi_prof_fixincPA_allrads, v_R_prof_fixincPA_allrads, sv_R_prof_fixincPA_allrads) = allprofiles_fixincPA_allrads
+                    DoAccrAllRads_fixIncPA=True
+                else:
+                    (rrs_fixincPA_allrads, v_Phi_prof_fixincPA_allrads, sv_Phi_prof_fixincPA_allrads) = allprofiles_fixincPA_allrads 
 
 
     nplotsy=0
@@ -207,90 +212,95 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     fig = plt.figure(constrained_layout=True,figsize=(figxsize,figysize))
     gs = fig.add_gridspec(nplotsy, 1) #, width_ratios=[2., 1., 1.], height_ratios=[1.,1.])
 
-
-    (RunMCMC, proflist) = LogResults.load(workdir,FixPAInc=False)                
-
-    if RunMCMC:
-        print("picked up MCMC run")
-        [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, PAs_MCMC, tanpsis_MCMC, incs_MCMC, allradsPAMCMC, allradsincMCMC,allradspsiMCMC] = proflist
-
-        allradsinc=allradsincMCMC
-        allradsPA=allradsPAMCMC
-        allradspsi=allradspsiMCMC
-
-    else:
-        [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi] = proflist
-
-        
-    if ForceGlobalOrient:
-        print(">>>>>> Plotting  Fix Orient, with forced global orientation, at PA=",Force_allradsPA," inc=",Force_allradsinc)
-        allradsPA=Force_allradsPA
-        allradsinc=Force_allradsinc*180./np.pi
-
-
-        
-    if (a_min < 0):
-        a_min=np.min(r1s)
-    if (a_max <0):
-        a_max=np.max(r2s)
-         
-    print( "a_min ",a_min," a_max", a_max)
-
-
-
-    #print( "psis",psis)
-    #print( "allradspsi",allradspsi)
-    #print( "incs",incs)
-
-    psierrors=np.zeros((2,len(psis)))
-    if RunMCMC:
-        for ir,atanpsi in enumerate(tanpsis_MCMC):
-            psis[ir]=180.*np.arctan(atanpsi[0])/np.pi
-                          
-            psierrors[1,ir]=180.*(np.arctan(atanpsi[1]+atanpsi[0])-np.arctan(atanpsi[0]))/np.pi
-            psierrors[0,ir]=180.*(np.arctan(atanpsi[0])-np.arctan(atanpsi[0]-atanpsi[2]))/np.pi
-
-
-    incerrors=np.zeros((2,len(incs)))
-    if RunMCMC:
-        for ir,ainc in enumerate(incs_MCMC):
-            #print( "ainc",ainc)
-            incs[ir]=ainc[0]*180./np.pi
-            incerrors[1,ir]=1.*ainc[1]*180./np.pi
-            incerrors[0,ir]=1.*ainc[2]*180./np.pi
-
-    PAerrors=np.zeros((2,len(PAs)))
-    if RunMCMC:
-        for ir,aPA in enumerate(PAs_MCMC):
-            PAs[ir]=aPA[0]
-            PAerrors[1,ir]=1.*aPA[1]
-            PAerrors[0,ir]=1.*aPA[2]
-
-
-
-
-
     if VarOrient:
         axprofile = fig.add_subplot(gs[(nplotsy-1),0])
 
-    if PlotVarPAinc:
-        print("rregions",rregions)
-        print("PAs",PAs)
+    RunMCMC=False
+    GlobalOrientProf=False
+    if os.path.isdir(workdir):
+
+        GlobalOrientProf=True
         
-        (ymin, ymax) = Orient.PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allradsinc,incerrors, psis, allradspsi, psierrors)
+        (RunMCMC, proflist) = LogResults.load(workdir,FixPAInc=False)                
+
+        if RunMCMC:
+            print("picked up MCMC run")
+            [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, PAs_MCMC, tanpsis_MCMC, incs_MCMC, allradsPAMCMC, allradsincMCMC,allradspsiMCMC] = proflist
+
+            allradsinc=allradsincMCMC
+            allradsPA=allradsPAMCMC
+            allradspsi=allradspsiMCMC
+
+        else:
+            [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi] = proflist
+
+    
+        if ForceGlobalOrient:
+            print(">>>>>> Plotting  Fix Orient, with forced global orientation, at PA=",Force_allradsPA," inc=",Force_allradsinc)
+            allradsPA=Force_allradsPA
+            allradsinc=Force_allradsinc*180./np.pi
+
+        if (a_min < 0):
+            a_min=np.min(r1s)
+        if (a_max <0):
+            a_max=np.max(r2s)
+
+        print( "a_min ",a_min," a_max", a_max)
 
 
-    sigma_PA=np.std(PAs)
-    sigma_inc=np.std(incs)
-    sigma_psi=np.std(psis)
-    print( "Psi= %.1f +- %.1f deg" % (allradspsi,sigma_psi))
-    print( "Inc= %.2f +- %.2f deg" % (allradsinc,sigma_inc))
-    print( "PA= %.1f +- %.1f deg" % (allradsPA,sigma_PA))
+
+        #print( "psis",psis)
+        #print( "allradspsi",allradspsi)
+        #print( "incs",incs)
+
+        psierrors=np.zeros((2,len(psis)))
+        if RunMCMC:
+            for ir,atanpsi in enumerate(tanpsis_MCMC):
+                psis[ir]=180.*np.arctan(atanpsi[0])/np.pi
+
+                psierrors[1,ir]=180.*(np.arctan(atanpsi[1]+atanpsi[0])-np.arctan(atanpsi[0]))/np.pi
+                psierrors[0,ir]=180.*(np.arctan(atanpsi[0])-np.arctan(atanpsi[0]-atanpsi[2]))/np.pi
 
 
-    print( "USING inclination ", allradsinc," for mass estimates")
-    cosi=np.fabs(np.cos(allradsinc*np.pi/180.))
+        incerrors=np.zeros((2,len(incs)))
+        if RunMCMC:
+            for ir,ainc in enumerate(incs_MCMC):
+                #print( "ainc",ainc)
+                incs[ir]=ainc[0]*180./np.pi
+                incerrors[1,ir]=1.*ainc[1]*180./np.pi
+                incerrors[0,ir]=1.*ainc[2]*180./np.pi
 
+        PAerrors=np.zeros((2,len(PAs)))
+        if RunMCMC:
+            for ir,aPA in enumerate(PAs_MCMC):
+                PAs[ir]=aPA[0]
+                PAerrors[1,ir]=1.*aPA[1]
+                PAerrors[0,ir]=1.*aPA[2]
+
+
+
+
+        if PlotVarPAinc:
+            print("rregions",rregions)
+            print("PAs",PAs)
+
+            (ymin, ymax) = Orient.PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allradsinc,incerrors, psis, allradspsi, psierrors)
+
+
+        sigma_PA=np.std(PAs)
+        sigma_inc=np.std(incs)
+        sigma_psi=np.std(psis)
+        print( "Psi= %.1f +- %.1f deg" % (allradspsi,sigma_psi))
+        print( "Inc= %.2f +- %.2f deg" % (allradsinc,sigma_inc))
+        print( "PA= %.1f +- %.1f deg" % (allradsPA,sigma_PA))
+
+
+        print( "USING inclination ", allradsinc," for mass estimates")
+        cosi=np.fabs(np.cos(allradsinc*np.pi/180.))
+
+        BackSide=False
+        if (allradspsi < 0.):
+            BackSide=True
 
     #######################################################################
     ######################################################################
@@ -336,8 +346,6 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
 
     if VarOrient:
-        ymin=min(ymin,ymin_fixincPA)
-        ymax=max(ymax,ymax_fixincPA)
 
         if not PlotVarPAinc:
             #ymin=min(ymin,ymin_fixincPA)
@@ -345,6 +353,11 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             #else:
             ymin=ymin_fixincPA
             ymax=ymax_fixincPA
+
+        else:
+
+            ymin=min(ymin,ymin_fixincPA)
+            ymax=max(ymax,ymax_fixincPA)
 
         axprofile.set_xlim(a_min,a_max)
         axprofile.set_ylim(ymin, ymax)
@@ -362,12 +375,17 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         axprofile.xaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
 
 
+    if ForceGlobalOrient:
+        print(">>>>>> Plotting  Fix Orient, with forced global orientation, at PA=",Force_allradsPA," inc=",Force_allradsinc)
+        allradsPA=Force_allradsPA
+        allradsinc=Force_allradsinc*180./np.pi
+
     print( "USING inclination ", allradsinc," for mass estimates")
     #cosi=np.cos(40.06*np.pi/180.)
     cosi=np.fabs(np.cos(allradsinc*np.pi/180.))
 
     BackSide=False
-    if (allradspsi < 0.):
+    if (allradspsi_fixincPA < 0.):
         BackSide=True
 
     ######################################################################
@@ -375,14 +393,17 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
 
     if VarOrient:
-        hhs=np.interp(rrs,rregions,np.tan(psis*np.pi/180.))
+        if GlobalOrientProf:
+            hhs=np.interp(rrs,rregions,np.tan(psis*np.pi/180.))
         if DoFixIncPA:
             hhs_fixincPA=np.interp(rrs_fixincPA,rregions_fixincPA,np.tan(psis_fixincPA*np.pi/180.))
     else:
         hhs=np.tan(allradspsi*np.pi/180.)*np.ones(rrs.shape)
 
-    correct4midplane = ( (1. + hhs**2)**(3./4.) )
-    v_Phi_prof_mid = v_Phi_prof * correct4midplane
+    if GlobalOrientProf:
+        correct4midplane = ( (1. + hhs**2)**(3./4.) )
+        v_Phi_prof_mid = v_Phi_prof * correct4midplane
+        
     if DoFixIncPA:
         correct4midplane_fixincPA = ( (1. + hhs_fixincPA**2)**(3./4.))
         v_Phi_prof_mid_fixincPA = v_Phi_prof_fixincPA * correct4midplane_fixincPA 
@@ -411,7 +432,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         alabel=r'fix $i$, PA region av.'
         #alabel=''
         v_Phi_prof_mid_fixincPA_allrads = v_Phi_prof_fixincPA_allrads * correct4midplane_fixincPA 
-        (vymin,vymax)=RotCurve.PlotV_phi(axprofile,rrs_allrads,a_min,a_max,v_Phi_prof_fixincPA_allrads,sv_Phi_prof_fixincPA_allrads,v_Phi_prof_mid_fixincPA_allrads,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=alabel)
+        (vymin,vymax)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA_allrads,sv_Phi_prof_fixincPA_allrads,v_Phi_prof_mid_fixincPA_allrads,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=alabel)
 
         #print("v_Phi_prof_fixincPA_allrads*np.sqrt(rrs_allrads)/np.sqrt(a_max)",v_Phi_prof_fixincPA_allrads*np.sqrt(rrs_allrads)/np.sqrt(a_max))
                 

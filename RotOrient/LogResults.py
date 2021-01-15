@@ -35,8 +35,17 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
                 #instring=matches.group(0)
                 allradstanpsi_fixincPA=float(matches.group(1))
                 AllRads=False
+            if AllRadsMCMC:
+                #(allPA, allinc, alltanpsi) = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*)$",aline)
+                matches = re.search("^tanpsi-> (.*) $",aline)
+                #instring=matches.group(0)
+                allradstanpsi_fixincPA_MCMC=float(matches.group(1))
+                AllRadsMCMC=False
             if "Global" in aline:
                 AllRads=True
+            if "Global MCMC" in aline:
+                AllRadsMCMC=True
+                RunMCMC=True
             if (emcee_posterior and (not Regions)):
                 matches = re.search("^tanpsi ->\s+(\-?\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*$",aline)
                 if (matches):
@@ -85,9 +94,9 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
         psis_fixincPA=np.arctan(tanpsis_fixincPA)*180./np.pi
 
 
-        allradspsi_fixincPA= np.arctan( tanpsi_fixincPA_MCMC[0]) * 180. / np.pi
 
         if RunMCMC:
+            allradspsi_fixincPA= np.arctan( tanpsi_fixincPA_MCMC[0]) * 180. / np.pi
 
             print(">>>fix>>psis_fixincPA ", psis_fixincPA)
             print(">>>fix>>allradspsi_fixincPA", allradspsi_fixincPA,"tanpsi_fixincPA_MCMC[0]",tanpsi_fixincPA_MCMC[0])
@@ -96,6 +105,7 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
             
             return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, tanpsis_fixincPA_MCMC])
         else:
+            allradspsi_fixincPA= np.arctan( allradstanpsi_fixincPA) * 180. / np.pi
             return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA])
             
     else:
