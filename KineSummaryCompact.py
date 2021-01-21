@@ -18,7 +18,7 @@ sys.path.append(include_path)
 import ImUtils.Resamp as Resamp
 import ImUtils.Cube2Im as Cube2Im
 
-def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,VisibleXaxis=False,VisibleYaxis=False,DoBeamEllipse=False,DoGreyCont=False,DoCB=False,Clevs=False,Region=False,vsyst=0.,nplotsx=1,nplotsy=1,Region_Contours=False,SymmetricRange=False,UseScatter=False,cmap='ocean_r',filename_weights='',SubtractVsyst=False,ColorBarScale=1.,cblabel='km/s',Zoom=False,side=3.5,RegionOfInterest=False):
+def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,VisibleXaxis=False,VisibleYaxis=False,DoBeamEllipse=False,DoGreyCont=False,DoCB=False,Clevs=False,Region=False,vsyst=0.,nplotsx=1,nplotsy=1,Region_Contours=False,SymmetricRange=False,UseScatter=False,cmap='ocean_r',filename_weights='',SubtractVsyst=False,ColorBarScale=1.,cblabel='km/s',Zoom=False,side=3.5,RegionOfInterest=False,a_min=-1,a_max=-1):
 
         print("vsyst",vsyst)
 
@@ -127,75 +127,95 @@ def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,Visible
                 hdr_region= f[0].header
                 subim_region = im_region[int(j0):int(j1),int(i0):int(i1)]
 
-                dum=subim_region*subim_grey
-                print( "dum max:",np.max(dum))
-                print( "dum min:",np.min(dum))
+        else:
+                
+                (ny,nx) = subim_grey.shape 
+                x=np.arange(1,nx+1)
+                y=np.arange(1,ny+1)
+                X, Y = np.meshgrid(x, y)
+                
+                X0 = np.floor(nx/2)+1
+                Y0 = np.floor(ny/2)+1
+                dxxs = -cdelt *(X-X0)
+                dyys = cdelt *(Y-Y0)
+                rrs = np.sqrt( (dxxs)**2 + (dyys)**2)
+                if ((a_min > 0) and (a_max > 0.)):
+                        mask =  (  (rrs > a_min) & (rrs < a_max) )
+                else:
+                        mask= (rrs >0.)
+                subim_region=np.zeros(rrs.shape)
+                subim_region[mask]=1.
 
-                subim_region[np.where(subim_region < 0.)] = 0.
-                subim_region[np.where(subim_region > 1.)] = 1.
+                
 
-                subim_grey[np.where(subim_region < 0.5)] = 0.
-                print("vsyst",vsyst)
+        dum=subim_region*subim_grey
+        print( "dum max:",np.max(dum))
+        print( "dum min:",np.min(dum))
 
+        subim_region[np.where(subim_region < 0.)] = 0.
+        subim_region[np.where(subim_region > 1.)] = 1.
 
-                if (Clevs=='Region'): # and (not 'centered.fits' in filename_grey)):
-                        subim_grey_filt=scipy.signal.medfilt(subim_grey,5)
-                        range1=np.min(subim_grey_filt[np.where(subim_region > 0.99)])
-                        range2=np.max(subim_grey_filt[np.where(subim_region > 0.99)])
-
-                        scatter_subim_raw=np.std(subim_grey[np.where(subim_region > 0.9)])
-                        mean_subim=np.median(subim_grey[np.where(subim_region > 0.9)])
-                        scatter_subim=np.sqrt(np.median((subim_grey[np.where(subim_region > 0.9)] - mean_subim)**2))
-
-                        print("Region: range1, range2",range1,range2)
-
-                        if (os.path.exists(filename_weights)):
-                                print( "loading ", filename_weights)
-
-                                f = fits.open(filename_weights)
-                                im_w = f[0].data
-                                hdr_w= f[0].header
-                                subim_w = im_w[int(j0):int(j1),int(i0):int(i1)]
-
-                                medianval_w = np.median(subim_w)
-                                print("medianval_w",medianval_w)
-
-                                range1=np.min(subim_grey_filt[np.where( (subim_region > 0.99) & (subim_w > (medianval_w)))])
-                                range2=np.max(subim_grey_filt[np.where( (subim_region > 0.99) & (subim_w > (medianval_w)))])
+        subim_grey[np.where(subim_region < 0.5)] = 0.
+        print("vsyst",vsyst)
 
 
-                                scatter_subim_raw=np.std(subim_grey[np.where( (subim_region > 0.9) & (subim_w > 1E-3))])
-                                mean_subim=np.median(subim_grey[np.where( (subim_region > 0.9) & (subim_w > 1E-3))])
-                                scatter_subim=np.sqrt(np.median((subim_grey[np.where( (subim_region > 0.9) & (subim_w > 1E-3))] - mean_subim)**2))
+        if (Clevs=='Region'): # and (not 'centered.fits' in filename_grey)):
+                subim_grey_filt=scipy.signal.medfilt(subim_grey,5)
+                range1=np.min(subim_grey_filt[np.where(subim_region > 0.99)])
+                range2=np.max(subim_grey_filt[np.where(subim_region > 0.99)])
 
-                                print("Region + weights: range1, range2",range1,range2)
+                scatter_subim_raw=np.std(subim_grey[np.where(subim_region > 0.9)])
+                mean_subim=np.median(subim_grey[np.where(subim_region > 0.9)])
+                scatter_subim=np.sqrt(np.median((subim_grey[np.where(subim_region > 0.9)] - mean_subim)**2))
+
+                print("Region: range1, range2",range1,range2)
+
+                if (os.path.exists(filename_weights)):
+                        print( "loading ", filename_weights)
+
+                        f = fits.open(filename_weights)
+                        im_w = f[0].data
+                        hdr_w= f[0].header
+                        subim_w = im_w[int(j0):int(j1),int(i0):int(i1)]
+
+                        medianval_w = np.median(subim_w)
+                        print("medianval_w",medianval_w)
+
+                        range1=np.min(subim_grey_filt[np.where( (subim_region > 0.99) & (subim_w > (medianval_w)))])
+                        range2=np.max(subim_grey_filt[np.where( (subim_region > 0.99) & (subim_w > (medianval_w)))])
+
+
+                        scatter_subim_raw=np.std(subim_grey[np.where( (subim_region > 0.9) & (subim_w > 1E-3))])
+                        mean_subim=np.median(subim_grey[np.where( (subim_region > 0.9) & (subim_w > 1E-3))])
+                        scatter_subim=np.sqrt(np.median((subim_grey[np.where( (subim_region > 0.9) & (subim_w > 1E-3))] - mean_subim)**2))
+
+                        print("Region + weights: range1, range2",range1,range2)
 
 
 
 
-                                print( "Region range: ",range1," ",range2, "soft scatter ",scatter_subim,"hard scatter ",scatter_subim_raw)
-                                flog.write( "Region range: "+str(range1)+" "+str(range2)+" soft scatter "+str(scatter_subim)+" hard scatter "+str(scatter_subim_raw)+"\n")
+                        print( "Region range: ",range1," ",range2, "soft scatter ",scatter_subim,"hard scatter ",scatter_subim_raw)
+                        flog.write( "Region range: "+str(range1)+" "+str(range2)+" soft scatter "+str(scatter_subim)+" hard scatter "+str(scatter_subim_raw)+"\n")
 
-                        av_range0=(range1+range2)/2.
-                        if (SymmetricRange):
-                                range0=max(np.fabs(range1),np.fabs(range2))
-                                if (UseScatter):
-                                        print( "using scatter for ranges")
-                                        range0=5.*scatter_subim
-                                range0= float('%.1f' % (range0))
-                                range1=-range0
-                                range2=range0
-                                clevs = [range1,0.,range2]
-                                clabels=['%.2f' % (clevs[0]),'0.','%.2f' % (clevs[2])]
-                        else:
-                                delta_range0=max(np.fabs(range1-av_range0),np.fabs(range2-av_range0))
-                                if (UseScatter):
-                                        range1=-3.*scatter_subim+av_range0
-                                        range2=3.*scatter_subim+av_range0
+                av_range0=(range1+range2)/2.
+                if (SymmetricRange):
+                        range0=max(np.fabs(range1),np.fabs(range2))
+                        if (UseScatter):
+                                print( "using scatter for ranges")
+                                range0=5.*scatter_subim
+                        range0= float('%.1f' % (range0))
+                        range1=-range0
+                        range2=range0
+                        clevs = [range1,0.,range2]
+                        clabels=['%.2f' % (clevs[0]),'0.','%.2f' % (clevs[2])]
+                else:
+                        delta_range0=max(np.fabs(range1-av_range0),np.fabs(range2-av_range0))
+                        if (UseScatter):
+                                range1=-3.*scatter_subim+av_range0
+                                range2=3.*scatter_subim+av_range0
 
-                                clevs = [range1,range2]
-                                clabels=['%.2f' % (ColorBarScale*clevs[0]),'%.2f' % (ColorBarScale*clevs[1])]
-
+                        clevs = [range1,range2]
+                        clabels=['%.2f' % (ColorBarScale*clevs[0]),'%.2f' % (ColorBarScale*clevs[1])]
 
 
 
@@ -441,7 +461,7 @@ def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,Visible
 
                 
 
-def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=False,file_m0=False,file_m2=False,file_continuum=False,Zoom=False,RegionOfInterest=False,side=3.5):
+def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=False,file_m0=False,file_m2=False,file_continuum=False,Zoom=False,RegionOfInterest=False,side=3.5,AllRads=True,a_min=-1,a_max=-1):
 
 
         
@@ -457,7 +477,10 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
         global flog
         flog=open(workdir+inbasename+"_region_scatter_diff.txt","w+")
 
-        fileout = workdir+'fig_'+inbasename+'_report_allrads_diff.pdf'
+        if AllRads:
+                fileout = workdir+'fig_'+inbasename+'_report_allrads_diff.pdf'
+        else:
+                fileout = workdir+'fig_'+inbasename+'_report_diff.pdf'
 
         #file_continuum='/Users/simon/common/ppdisks/HD97048/data/b7_2016/continuum/mod_out.fits'
 
@@ -541,21 +564,30 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
 
         label=r'a) $v_\circ$'
         filename_grey=workdir+inbasename+'_centered.fits'
+
         filename_region=workdir+inbasename+'_imregions.fits'
+        if (not os.path.isfile(filename_region)):
+                filename_region=False
+                
         #filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
 
 
 
         label=r'b) $v_\circ - v^m_\circ$'
-        filename_grey=workdir+inbasename+'_allrads_azim_av_drot_diff.fits'
-        filename_region=workdir+inbasename+'_imregions.fits'
+
+        if AllRads:
+                filename_grey=workdir+inbasename+'_allrads_azim_av_drot_diff.fits'
+        else:
+                filename_grey=workdir+inbasename+'_azim_av_drot_diff.fits'
+                
+        #filename_region=workdir+inbasename+'_imregions.fits'
         filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',filename_weights=filename_weights,UseScatter=True,DoCB=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',filename_weights=filename_weights,UseScatter=True,DoCB=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
 
         if file_continuum:
                 label=r'c) 225GHz continuum'
@@ -564,7 +596,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
                 filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu$Jy/pix',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu$Jy/pix',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
 
 
 
@@ -605,7 +637,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
 
 
 
-def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False,file_m0=False,file_m2=False,file_continuum=False, Zoom=False,RegionOfInterest=False,side=3.5):
+def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False,file_m0=False,file_m2=False,file_continuum=False, Zoom=False,RegionOfInterest=False,side=3.5,AllRads=True,a_min=-1,a_max=-1):
 
 
         
@@ -620,11 +652,14 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
 
         global flog
         flog=open(workdir+inbasename+"_region_scatter_diff.txt","w+")
-        
+
+        allradsstr=''
+        if AllRads:
+                allradsstr='_allrads'
         if Zoom:
-                fileout = workdir+'fig_'+inbasename+'_report_allrads_faceon_zoom.pdf'
+                fileout = workdir+'fig_'+inbasename+'_report'+allradsstr+'_faceon_zoom.pdf'
         else:
-                fileout = workdir+'fig_'+inbasename+'_report_allrads_faceon.pdf'
+                fileout = workdir+'fig_'+inbasename+'_report'+allradsstr+'_faceon.pdf'
 
         #file_continuum='/Users/simon/common/ppdisks/HD97048/data/b7_2016/continuum/mod_out.fits'
 
@@ -700,29 +735,45 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
         if (file_continuum):
                 file_im_continuum=workdir+inbasename+'_fullim_continuum.fits'
                 Cube2Im.slice0(file_continuum,file_im_continuum)
-                Resamp.gridding(file_im_continuum,workdir+inbasename+'_allrads_resamp_faceon.fits',fileout=workdir+inbasename+'_subim_continuum_faceon.fits')                
+
+                if AllRads:
+                        fileref=workdir+inbasename+'_allrads_resamp_faceon.fits'
+                else:
+                        fileref=workdir+inbasename+'_resamp_faceon.fits'
+                        
+                Resamp.gridding(file_im_continuum,fileref,fileout=workdir+inbasename+'_subim_continuum_faceon.fits')                
                 filename_contours=workdir+inbasename+'_subim_continuum_faceon.fits'
                 #filename_contours=False
 
         #work_dgaussmoments_LOSNoise_tclean_briggs0.5_pix2_Merid_fixPAinc/im_g_v0_allrads_diff_faceon.fits
         #work_dgaussmoments_LOSNoise_tclean_briggs0.5_pix2_Merid_fixPAinc/im_g_v0_imregions_faceon.fits
         #work_dgaussmoments_LOSNoise_tclean_briggs0.5_pix2_Merid_fixPAinc/im_g_v0_allrads_resamp_faceon.fits
+
+        if AllRads:
+                filename_grey=workdir+inbasename+'_allrads_resamp_faceon.fits'
+        else:
+                filename_grey=workdir+inbasename+'_resamp_faceon.fits'
                 
-        filename_grey=workdir+inbasename+'_allrads_resamp_faceon.fits'
         filename_region=workdir+inbasename+'_imregions_faceon.fits'
+        if (not os.path.isfile(filename_region)):
+                filename_region=False
+
         #filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
 
         label=r'b) $v_\circ - v^m_\circ$'
 
-        filename_grey=workdir+inbasename+'_allrads_diff_faceon.fits'
-        filename_region=workdir+inbasename+'_imregions_faceon.fits'
+        if AllRads:
+                filename_grey=workdir+inbasename+'_allrads_diff_faceon.fits'
+        else:
+                filename_grey=workdir+inbasename+'_diff_faceon.fits'
+        #filename_region=workdir+inbasename+'_imregions_faceon.fits'
         #filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',UseScatter=True,DoCB=True,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side) # ,vsyst=vsyst)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',UseScatter=True,DoCB=True,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max) # ,vsyst=vsyst)
 
         if file_continuum:
                 label=r'c) 225GHz continuum'
@@ -731,7 +782,7 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
                 filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu$Jy/pix',Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side) #,vsyst=vsyst)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu$Jy/pix',Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max) #,vsyst=vsyst)
 
 
 

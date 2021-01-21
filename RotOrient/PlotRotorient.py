@@ -22,11 +22,14 @@ import ConeRot.RotOrient.Orient as Orient
 
 rgaps=[0.4433,  0.8575, 1.3923, 2.3]
 
-def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_Global_FixIncPA = False, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.):
+
+#Plot_vRot_Global_FixIncPA = False,
+
+def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.):
     
     XCheckFixIncPA=False # cross check that the rot curve is the same for global optim  and global init optim for  fix PA and inc (should be the same PA, inc, psi)
 
-
+    Regions=True
     
     #nametag='im_g_v0'
     
@@ -188,9 +191,21 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     if DoAccr:
         nplotsy+=1
 
-    if DoAccr_fixIncPA and Plot_vRot_Global_FixIncPA:
+    if DoAccr_fixIncPA and Plot_vRot_Global:
         nplotsy+=1
 
+    if DoMerid and Plot_vRot_Global:
+        nplotsy+=2
+    elif DoAccr and Plot_vRot_Global:
+        nplotsy+=1
+
+    if DoMerid_fixIncPA and Plot_vRot_Global:
+        nplotsy+=2
+    elif DoAccr_fixIncPA and Plot_vRot_Global:
+        nplotsy+=1
+
+
+        
     if DoMeridAllRads and Plot_vRot_VarOrient:
         nplotsy+=2
     elif DoAccrAllRads and Plot_vRot_VarOrient:
@@ -222,7 +237,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         GlobalOrientProf=True
         
         (RunMCMC, proflist) = LogResults.load(workdir,FixPAInc=False)                
-
+        
         if RunMCMC:
             print("picked up MCMC run")
             [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, PAs_MCMC, tanpsis_MCMC, incs_MCMC, allradsPAMCMC, allradsincMCMC,allradspsiMCMC] = proflist
@@ -309,13 +324,19 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
         (RunMCMC, proflist) = LogResults.load(workdir_fixincPA,RunMCMC=RunMCMC,FixPAInc=True) 
 
+        print("proflist",proflist)
 
         if RunMCMC:
             [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, tanpsis_fixincPA_MCMC]=proflist
         else:
             [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA] = proflist
 
-
+        if (len(rregions_fixincPA)==0):
+            Regions=False
+            VarOrient=False
+            if ( (a_min < 0) or (a_max <0)):
+                sys.exit("need to specify a_min and a_max in call to execfig")
+            
         if (a_min < 0):
             a_min=np.min(r1s)
         if (a_max <0):
@@ -398,7 +419,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         if DoFixIncPA:
             hhs_fixincPA=np.interp(rrs_fixincPA,rregions_fixincPA,np.tan(psis_fixincPA*np.pi/180.))
     else:
-        hhs=np.tan(allradspsi*np.pi/180.)*np.ones(rrs.shape)
+        hhs_fixincPA=np.tan(allradspsi_fixincPA*np.pi/180.)*np.ones(rrs_fixincPA.shape)
 
     if GlobalOrientProf:
         correct4midplane = ( (1. + hhs**2)**(3./4.) )
@@ -411,7 +432,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     jpos=0
     if Plot_vRot_Global:
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_phi(axprofile,rrs,a_min,a_max,v_Phi_prof,sv_Phi_prof,v_Phi_prof_mid,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'global')
+        #RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof,sv_Phi_prof,v_Phi_prof_mid,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'global')
+        RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'')
         jpos+=1
 
 
@@ -471,14 +493,14 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if (DoMerid_fixIncPA and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'fix $i$, PA global')
+        RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'')
         jpos+=1
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'fix $i$, PA global')
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'')
         jpos+=1
     elif (DoAccr_fixIncPA and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'fix $i$, PA global')
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'')
         jpos+=1
 
 
