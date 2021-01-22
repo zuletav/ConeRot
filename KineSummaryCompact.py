@@ -572,7 +572,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
         #filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
 
 
 

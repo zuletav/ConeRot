@@ -35,7 +35,6 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
 
     if (DoStellarMass):
         StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max)
-        StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_mid_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,linecolor='cornflowerblue')
 
     if (ContinuumGaps):
         for argap in ContinuumGaps:
@@ -48,12 +47,14 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
 
 
     axprofile.plot(rrs_fixincPA[plotmask],v_Phi_prof_mid_fixincPA[plotmask]*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max),color='cornflowerblue',linewidth=1.5,linestyle='solid',label=r'$v_\phi$ mid.')
+    if (DoStellarMass):
+        StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_mid_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,linecolor='cornflowerblue')
 
     if (label != ''):
         axprofile.text(a_min+(a_max-a_min)*0.05,ymax-(ymax-ymin)*0.1,label)
     
     #axprofile.legend(fontsize=16)
-    axprofile.legend()
+    axprofile.legend(loc='upper left')
 
 
     axprofile.set_ylabel(r'$\sqrt{r/'+str(a_max)+'} \\times \\tilde{v}_{\phi}(r)$ / km s$^{-1}$')
@@ -68,7 +69,7 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
     return (ymin,ymax)
 
 
-def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=False,label=''):
+def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=False,label='',VisibleXaxis=False):
 
 
     rmax=np.max(rrs_fixincPA)
@@ -110,8 +111,8 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
     axprofile.tick_params(axis='both', length = 8,  direction='in', pad=10)
     axprofile.tick_params(top='on',right='on', direction='in')
     axprofile.tick_params(which='minor', top='on', length = 4, right='on', direction='in')
-    
-    plt.setp(axprofile.get_xticklabels(),visible=False) #, fontsize=6)
+
+    plt.setp(axprofile.get_xticklabels(),visible=VisibleXaxis) #, fontsize=6)
     
     if (ContinuumGaps):
         for argap in ContinuumGaps:

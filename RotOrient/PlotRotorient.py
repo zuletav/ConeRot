@@ -383,7 +383,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         axprofile.set_xlim(a_min,a_max)
         axprofile.set_ylim(ymin, ymax)
         axprofile.set_ylabel(r'deg')
-        axprofile.set_xlabel(r'$r$ / arcsec')
+        axprofile.set_xlabel(r'$R$ / arcsec')
 
         #axprofile.legend(fontsize=16)
         axprofile.legend()
@@ -483,11 +483,11 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'global')
         jpos+=1
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global')
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=True)
         jpos+=1
     elif (DoAccr and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global')
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=True)
         jpos+=1
 
 
@@ -496,11 +496,11 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'')
         jpos+=1
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'')
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'',VisibleXaxis=True)
         jpos+=1
     elif (DoAccr_fixIncPA and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'')
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'',VisibleXaxis=True)
         jpos+=1
 
 
@@ -624,6 +624,19 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         jpos += 1
 
 
+    if (not VarOrient):
+        axprofile = fig.add_subplot(gs[-1,0])
+        axprofile.tick_params(axis='both', length = 8,  direction='in', pad=10)
+        axprofile.tick_params(top='on',right='on', direction='in')
+        axprofile.tick_params(which='minor', top='on', length = 4, right='on', direction='in')
+        axprofile.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        axprofile.xaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
+
+        #plt.setp(axprofile.get_xticklabels(),visible=True) #, fontsize=6)
+        axprofile.set_xlim(a_min,a_max)
+        axprofile.set_xlabel(r'$R$ / arcsec')
+
+        
     plt.subplots_adjust(hspace=0.)
 
     print( fileout_fig)
