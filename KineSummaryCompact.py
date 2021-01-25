@@ -596,7 +596,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
                 filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu$Jy/pix',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
 
 
 
@@ -782,7 +782,7 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
                 filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu$Jy/pix',Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max) #,vsyst=vsyst)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max) #,vsyst=vsyst)
 
 
 
