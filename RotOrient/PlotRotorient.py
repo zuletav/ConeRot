@@ -43,7 +43,9 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     #Plot_vRot_Global=False  # if true will plot rotation curve for global (fixed) orientation  (so not averaged over Regions)
     #Plot_vRot_VarOrient=False  # if true will plot rotation curve for variable orientation too (so averaged over Regions)
+    #Plot_vRot_VarOrient_FixIncPA=False same as Plot_vRot_VarOrient but for fixed PA inc
     #VarOrient=True # will plot the variable orientation obtained from the Regions
+    
     ##
     #Plot_vRot_Global_FixIncPA = False
     #Plot_vRot_VarOrient_FixIncPA = True

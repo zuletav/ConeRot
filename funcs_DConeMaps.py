@@ -703,6 +703,7 @@ def exec_conicpolar_expansions(M):
         # cosi=np.cos(M.inc)
         #Nind=2.*np.pi*thisradius * np.fabs(cosi) /(M.bmaj) # aprox number of beams at each radius
         Nind=2.*np.pi*thisradius /(M.bmaj) # aprox number of beams at each radius
+            
         Nsum=len(w_vec)
         Npolcorr=Nsum/Nind
         #print("irrs ",irrs,Nsum, Nind, Npolcorr)
