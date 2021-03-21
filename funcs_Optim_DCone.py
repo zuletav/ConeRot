@@ -109,7 +109,8 @@ def run_scipy_optimize_minimize(M,OptimM,x,bnds):
     start_time=time.time()
     nll = lambda *args: -lnlike(*args)
     print( "domain: ",M.domain)
-    ftol=0.00001 # 1e-10 too small leads to abnormal termination
+    #ftol=0.00001 # 1e-10 too small leads to abnormal termination
+    ftol=0.001 # 1e-10 too small leads to abnormal termination
     result = op.minimize(nll, x, tol=ftol,bounds=bnds,options={'eps':1E-4})
     print( "result",result)
     result_ml  = result["x"]

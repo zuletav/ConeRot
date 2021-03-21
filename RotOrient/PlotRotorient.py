@@ -42,40 +42,38 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     #bmaj=0.104 # arcsec
 
     #Plot_vRot_Global=False  # if true will plot rotation curve for global (fixed) orientation  (so not averaged over Regions)
+    #Plot_vRot_Global_FixIncPA  # same as Plot_vRot_Global but for a run with fixed inc. and PA 
     #Plot_vRot_VarOrient=False  # if true will plot rotation curve for variable orientation too (so averaged over Regions)
     #Plot_vRot_VarOrient_FixIncPA=False same as Plot_vRot_VarOrient but for fixed PA inc
-    #VarOrient=True # will plot the variable orientation obtained from the Regions
     
-    ##
-    #Plot_vRot_Global_FixIncPA = False
-    #Plot_vRot_VarOrient_FixIncPA = True
-    #PlotVarPAinc=True
+    #VarOrient=True # will plot the variable orientation PA, inc, tanpsi obtained from the Regions
+    #PlotVarPAinc=True # will plot the variable PA and inc obtained from the Regions
 
 
     XCheckFixIncPA=False # cross check that the rot curve is the same for global optim  and global init optim for  fix PA and inc (should be the same PA, inc, psi)
 
     if WithComparData:
         ######################################################################
-        # Rich Teague data
-        vcube_RT=np.load('data_0/rteague/velocity_profiles_a.npy')
-        print("vcube_RT",vcube_RT.shape)      
-        #vcube_RT (4, 3, 159)
+        # Rich Teague data 'data_0/rteague/velocity_profiles_a.npy'
+        vcube_ComparData=np.load(WithComparData)
+        print("vcube_ComparData",vcube_ComparData.shape)      
+        #vcube_ComparData (4, 3, 159)
 
         inc_RichTeague=(180.-46.7)*np.pi/180.
 
         
-        rrs_RT=vcube_RT[0,0,:]
-        v_phi_RT=1E-3*vcube_RT[1,0,:]/np.sin(inc_RichTeague)
-        v_rad_RT=-1E-3*vcube_RT[2,0,:]/np.sin(inc_RichTeague)
-        v_z_RT=(1E-3*vcube_RT[3,0,:]-5.763)/np.cos(inc_RichTeague)
+        rrs_ComparData=vcube_ComparData[0,0,:]
+        v_phi_ComparData=1E-3*vcube_ComparData[1,0,:]/np.sin(inc_RichTeague)
+        v_rad_ComparData=-1E-3*vcube_ComparData[2,0,:]/np.sin(inc_RichTeague)
+        v_z_ComparData=(1E-3*vcube_ComparData[3,0,:]-5.763)/np.cos(inc_RichTeague)
         
-        s_v_phi_RT_lo=1E-3*vcube_RT[1,1,:]/np.sin(inc_RichTeague)
-        s_v_rad_RT_lo=1E-3*vcube_RT[2,1,:]/np.sin(inc_RichTeague)
-        s_v_z_RT_lo=1E-3*vcube_RT[3,1,:]/np.fabs(np.cos(inc_RichTeague))
+        s_v_phi_ComparData_lo=1E-3*vcube_ComparData[1,1,:]/np.sin(inc_RichTeague)
+        s_v_rad_ComparData_lo=1E-3*vcube_ComparData[2,1,:]/np.sin(inc_RichTeague)
+        s_v_z_ComparData_lo=1E-3*vcube_ComparData[3,1,:]/np.fabs(np.cos(inc_RichTeague))
         
-        s_v_phi_RT_up=1E-3*vcube_RT[1,2,:]/np.sin(inc_RichTeague)
-        s_v_rad_RT_up=1E-3*vcube_RT[2,2,:]/np.sin(inc_RichTeague)
-        s_v_z_RT_up=1E-3*vcube_RT[3,2,:]/np.fabs(np.cos(inc_RichTeague))
+        s_v_phi_ComparData_up=1E-3*vcube_ComparData[1,2,:]/np.sin(inc_RichTeague)
+        s_v_rad_ComparData_up=1E-3*vcube_ComparData[2,2,:]/np.sin(inc_RichTeague)
+        s_v_z_ComparData_up=1E-3*vcube_ComparData[3,2,:]/np.fabs(np.cos(inc_RichTeague))
         ######################################################################
 
     #######################################################################
@@ -464,13 +462,13 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             # Rich Teague data
 
 
-            #print("v_phi_RT*np.sqrt(rrs_RT)/np.sqrt(a_max)",v_phi_RT*np.sqrt(rrs_RT)/np.sqrt(a_max))
-            axprofile.plot(rrs_RT,v_phi_RT*np.sqrt(rrs_RT)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_\phi$ eddy')
-            axprofile.fill_between(rrs_RT,(v_phi_RT+s_v_phi_RT_up)*np.sqrt(rrs_RT)/np.sqrt(a_max),(v_phi_RT-s_v_phi_RT_lo)*np.sqrt(rrs_RT)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
+            #print("v_phi_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max)",v_phi_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max))
+            axprofile.plot(rrs_ComparData,v_phi_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_\phi$ eddy')
+            axprofile.fill_between(rrs_ComparData,(v_phi_ComparData+s_v_phi_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_phi_ComparData-s_v_phi_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
 
-            maskrange=( (rrs_RT > a_min) & (rrs_RT < a_max))
-            vcomparmin=np.min((v_phi_RT[maskrange]-s_v_phi_RT_lo[maskrange])*np.sqrt(rrs_RT[maskrange])/np.sqrt(a_max))
-            vcomparmax=np.max((v_phi_RT[maskrange]+s_v_phi_RT_up[maskrange])*np.sqrt(rrs_RT[maskrange])/np.sqrt(a_max))
+            maskrange=( (rrs_ComparData > a_min) & (rrs_ComparData < a_max))
+            vcomparmin=np.min((v_phi_ComparData[maskrange]-s_v_phi_ComparData_lo[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
+            vcomparmax=np.max((v_phi_ComparData[maskrange]+s_v_phi_ComparData_up[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
             vymin=min(vymin,vcomparmin)
             vymax=max(vymax,vcomparmax)
             axprofile.set_ylim(vymin,vymax)
@@ -526,13 +524,13 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         (vymin,vymax)=RotCurve.PlotV_z(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_z_prof_fixincPA_allrads,sv_z_prof_fixincPA_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=alabel)
         if WithComparData:
             # Rich Teague data
-            axprofile.plot(rrs_RT,v_z_RT*np.sqrt(rrs_RT)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_z$ eddy')
-            axprofile.fill_between(rrs_RT,(v_z_RT+s_v_z_RT_up)*np.sqrt(rrs_RT)/np.sqrt(a_max),(v_z_RT-s_v_z_RT_lo)*np.sqrt(rrs_RT)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
+            axprofile.plot(rrs_ComparData,v_z_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_z$ eddy')
+            axprofile.fill_between(rrs_ComparData,(v_z_ComparData+s_v_z_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_z_ComparData-s_v_z_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
 
 
-            maskrange=( (rrs_RT > a_min) & (rrs_RT < a_max))
-            vcomparmin=np.min((v_z_RT[maskrange]-s_v_z_RT_lo[maskrange])*np.sqrt(rrs_RT[maskrange])/np.sqrt(a_max))
-            vcomparmax=np.max((v_z_RT[maskrange]+s_v_z_RT_up[maskrange])*np.sqrt(rrs_RT[maskrange])/np.sqrt(a_max))
+            maskrange=( (rrs_ComparData > a_min) & (rrs_ComparData < a_max))
+            vcomparmin=np.min((v_z_ComparData[maskrange]-s_v_z_ComparData_lo[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
+            vcomparmax=np.max((v_z_ComparData[maskrange]+s_v_z_ComparData_up[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
             vymin=min(vymin,vcomparmin)
             vymax=max(vymax,vcomparmax)
 
@@ -594,12 +592,12 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel)
         if WithComparData:
             # Rich Teague data
-            axprofile.plot(rrs_RT,v_rad_RT*np.sqrt(rrs_RT)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
-            axprofile.fill_between(rrs_RT,(v_rad_RT+s_v_rad_RT_up)*np.sqrt(rrs_RT)/np.sqrt(a_max),(v_rad_RT-s_v_rad_RT_lo)*np.sqrt(rrs_RT)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
+            axprofile.plot(rrs_ComparData,v_rad_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
+            axprofile.fill_between(rrs_ComparData,(v_rad_ComparData+s_v_rad_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_rad_ComparData-s_v_rad_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
             
-            maskrange=( (rrs_RT > a_min) & (rrs_RT < a_max))
-            vcomparmin=np.min((v_rad_RT[maskrange]-s_v_rad_RT_lo[maskrange])*np.sqrt(rrs_RT[maskrange])/np.sqrt(a_max))
-            vcomparmax=np.max((v_rad_RT[maskrange]+s_v_rad_RT_up[maskrange])*np.sqrt(rrs_RT[maskrange])/np.sqrt(a_max))
+            maskrange=( (rrs_ComparData > a_min) & (rrs_ComparData < a_max))
+            vcomparmin=np.min((v_rad_ComparData[maskrange]-s_v_rad_ComparData_lo[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
+            vcomparmax=np.max((v_rad_ComparData[maskrange]+s_v_rad_ComparData_up[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
             vymin=min(vymin,vcomparmin)
             vymax=max(vymax,vcomparmax)
 
@@ -619,8 +617,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel)
         if WithComparData:
             # Rich Teague data
-            axprofile.plot(rrs_RT,v_rad_RT*np.sqrt(rrs_RT)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
-            axprofile.fill_between(rrs_RT,(v_rad_RT+s_v_rad_RT_up)*np.sqrt(rrs_RT)/np.sqrt(a_max),(v_rad_RT-s_v_rad_RT_lo)*np.sqrt(rrs_RT)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
+            axprofile.plot(rrs_ComparData,v_rad_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
+            axprofile.fill_between(rrs_ComparData,(v_rad_ComparData+s_v_rad_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_rad_ComparData-s_v_rad_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
 
         axprofile.legend()
         jpos += 1

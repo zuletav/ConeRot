@@ -101,7 +101,7 @@ class Setup():
 
 
         
-        M=DConeMaps.Model(VerboseInit=True)
+        M=DConeMaps.Model(VerboseInit=False)
 
         for a_attribute in M.__dict__.keys():
             if (a_attribute in self.__dict__.keys()):
