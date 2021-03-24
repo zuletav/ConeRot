@@ -22,6 +22,7 @@ class Setup():
                  typicalerror=0.1,
                  ComputeSystVelo=False,
                  vsyst=0.,
+                 sigma_vsyst=0., #uncertainty in the inferred value of vsyst
                  fieldscale=1.,
                  pixscale_factor=1.,
                  unitscale=1.,
@@ -132,9 +133,13 @@ class Setup():
                 OptimM.ConjGrad_1region(M)
                 M.ComputeSystVelo=False
                 print( "Calculated systemic velocity:",M.vsyst)
-                M.fout.write("Calculated systemic velocity:%.6f\n" % (M.vsyst))
+                M.fout.write("Calculated systemic velocity:%.6f +- %.6f \n" % (M.vsyst, M.sigma_vsyst))
             else:
                 M.fout.write("Input systemic velocity:%.6f\n" % (M.vsyst))
+
+            self.vsyst=M.vsyst
+            self.sigma_vsyst=M.sigma_vsyst
+            
 
             OptimM.ConjGrad_1region(M)
 
@@ -147,7 +152,7 @@ class Setup():
                 print(("RERUN with correct typicalerror, recommend to use at least "+str(M.velodev_med)))
 
         OptimM.RecoverConjGrad_1region(M)
-
+        
         # #####################################################################
         # emcee
         nparams=len(self.domain)

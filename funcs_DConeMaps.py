@@ -664,7 +664,7 @@ def exec_conicpolar_expansions(M):
         sigma_vsyst=np.asscalar(np.std(vsysts[ia_min:ia_max]))
         print( "vsyst calculated = ",vsyst,"+-",sigma_vsyst)
         M.vsyst=vsyst
-
+        M.sigma_vsyst=sigma_vsyst
     else:
         vsyst=M.vsyst
         if (M.Verbose):

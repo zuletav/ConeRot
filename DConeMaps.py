@@ -41,6 +41,7 @@ class Model():
                  DoAzimuthalProfile=False,
                  PlotRadialProfile=True,
                  vsyst=0.,
+                 sigma_vsyst=0.,
                  ComputeSystVelo=False,
                  DoAccr=False,
                  DoMerid=False,
