@@ -57,7 +57,7 @@ class Setup():
                  n_cores_MCMC=10,
                  Nit=140,
                  burn_in=70,
-                 nwalkers=30, 
+                 nwalkers=-1,  # <= 0 value will use defaults
                  domain=(),
                  RA=False,
                  DEC=False,
@@ -150,7 +150,11 @@ class Setup():
 
         # #####################################################################
         # emcee
-
+        nparams=len(self.domain)
+        print("nparams",nparams)
+        if (self.nwalkers <= 0):
+            self.nwalkers=int(7*nparams)
+        
         if (self.RunMCMC and  (os.path.isdir(self.workdir))):
             OptimM=Optim_DCone.OptimModel(M,RunMCMC=True,Nit=self.Nit,nwalkers=self.nwalkers,n_cores_MCMC=self.n_cores_MCMC,burn_in=self.burn_in)
             print("MasterDConeMaps: calling OptimM.emcee with self.n_cores_MCMC=",self.n_cores_MCMC)
@@ -241,6 +245,10 @@ class Setup():
                     emcee_posterior=False
                 if ("emcee posterior" in aline):
                     emcee_posterior=True
+                if ("Regions" in aline):
+                    emcee_posterior=False
+                    break
+                    
 
 
             PA=allradsPA
@@ -264,7 +272,7 @@ class Setup():
         self.PA=PA
         self.inc=inc
         self.tanpsi=tanpsi
-        self.nwalkers = 10 # 
+        self.nwalkers = 7 # 
         self.domain=( ('tanpsi',(tanpsi-self.rangetanpsi/2.,tanpsi+self.rangetanpsi/2.)),)
 
         #if self.DoMerid:
