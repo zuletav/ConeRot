@@ -16,7 +16,7 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
     AllRadsMCMC=False
     Regions=False
     emcee_posterior=False
-    
+    Init=False
     
     
     if FixPAInc:
@@ -28,7 +28,16 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
         tanpsis_sigma_fixincPA=[]
 
         tanpsis_fixincPA_MCMC=[]
+        
         for aline in log_output:
+            if Init:
+                #PA= 324.21 inc= 41.47 tanpsi= 0.0 Input systemic velocity:5.712058
+                matches= re.search("^PA= (.*) inc= (.*) tanpsi= (.*) Input.*$",aline)
+                initPA=float(matches.group(1))
+                initinc=float(matches.group(2))
+                Init=False
+
+                
             if AllRads:
                 #(allPA, allinc, alltanpsi) = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*)$",aline)
                 matches = re.search("^tanpsi-> (.*) $",aline)
@@ -41,6 +50,8 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
                 #instring=matches.group(0)
                 allradstanpsi_fixincPA_MCMC=float(matches.group(1))
                 AllRadsMCMC=False
+            if "Init" in aline:
+                Init=True
             if "Global" in aline:
                 AllRads=True
             if "Global MCMC" in aline:
@@ -103,10 +114,10 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
             print(">>>fix>>tanpsis_fixincPA_MCMC",tanpsis_fixincPA_MCMC)
             print(">>>fix>>psis_fixincPA_MCMC",180.*(np.arctan(tanpsis_fixincPA_MCMC))/np.pi)
             
-            return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, tanpsis_fixincPA_MCMC])
+            return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, tanpsis_fixincPA_MCMC,initPA,initinc])
         else:
             allradspsi_fixincPA= np.arctan( allradstanpsi_fixincPA) * 180. / np.pi
-            return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA])
+            return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA,initPA,initinc])
             
     else:
 

@@ -25,7 +25,7 @@ rgaps=[0.4433,  0.8575, 1.3923, 2.3]
 
 #Plot_vRot_Global_FixIncPA = False,
 
-def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.):
+def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel=''):
     
     XCheckFixIncPA=False # cross check that the rot curve is the same for global optim  and global init optim for  fix PA and inc (should be the same PA, inc, psi)
 
@@ -327,9 +327,9 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         print("proflist",proflist)
 
         if RunMCMC:
-            [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, tanpsis_fixincPA_MCMC]=proflist
+            [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, tanpsis_fixincPA_MCMC, initPA, initinc]=proflist
         else:
-            [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA] = proflist
+            [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, initPA, initinc] = proflist
 
         if (len(rregions_fixincPA)==0):
             Regions=False
@@ -360,7 +360,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
                 psierrors_fixincPA[0,ir]=180.*(np.arctan(atanpsi[0])-np.arctan(atanpsi[0]-atanpsi[2]))/np.pi
 
         if VarOrient:
-            (ymin_fixincPA,ymax_fixincPA)=Orient.PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, psierrors_fixincPA)
+            (ymin_fixincPA,ymax_fixincPA)=Orient.PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, psierrors_fixincPA,allradsinc=initinc, allradsPA=initPA)
 
         sigma_psi_fixincPA=np.std(psis_fixincPA)
         print( "Psi fixincPA= %.1f +- %.1f deg" % (allradspsi_fixincPA,sigma_psi_fixincPA))
@@ -451,7 +451,9 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if DoFixIncPA and Plot_vRot_VarOrient_FixIncPA:
         axprofile = fig.add_subplot(gs[jpos,0])
-        alabel=r'fix $i$, PA region av.'
+        if (alabel == ''):
+            alabel=r'fix $i$, PA region av.'
+            alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
         #alabel=''
         v_Phi_prof_mid_fixincPA_allrads = v_Phi_prof_fixincPA_allrads * correct4midplane_fixincPA 
         (vymin,vymax)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA_allrads,sv_Phi_prof_fixincPA_allrads,v_Phi_prof_mid_fixincPA_allrads,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=alabel)
@@ -520,6 +522,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     if DoMeridAllRads_fixIncPA and Plot_vRot_VarOrient_FixIncPA:
         axprofile = fig.add_subplot(gs[jpos,0])
         alabel=r'fix $i$, PA region av.'
+        alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
+
         #alabel=''
         (vymin,vymax)=RotCurve.PlotV_z(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_z_prof_fixincPA_allrads,sv_z_prof_fixincPA_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=alabel)
         if WithComparData:
@@ -588,6 +592,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
         axprofile = fig.add_subplot(gs[jpos,0])
         alabel=r'fix $i$, PA region av.'
+        alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
+
         # alabel=''
         (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel)
         if WithComparData:
@@ -613,6 +619,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     elif DoAccrAllRads_fixIncPA and Plot_vRot_VarOrient_FixIncPA:
         axprofile = fig.add_subplot(gs[jpos,0])
         alabel=r'fix $i$, PA region av.'
+        alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
+
         #alabel=''
         RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel)
         if WithComparData:

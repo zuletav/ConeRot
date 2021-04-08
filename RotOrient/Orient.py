@@ -60,7 +60,7 @@ def PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allrad
 
 
 
-def  PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, psierrors_fixincPA):
+def  PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, psierrors_fixincPA,allradsinc='', allradsPA=''):
 
 
     
@@ -76,7 +76,11 @@ def  PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allr
 
 
     if (allradspsi_fixincPA < 0):
-        thislabel = r'$-\psi-%.1f^\circ$ fix $i,\mathrm{PA}$'  %  -allradspsi_fixincPA
+        if (allradsinc == ''):
+            thislabel = r'$-\psi-%.1f^\circ$ fix $i,\mathrm{PA}$'  %  -allradspsi_fixincPA
+        else:
+            thislabel = r'$-\psi-%.1f^\circ$, $i$=%.1f PA=%d'  %  (-allradspsi_fixincPA,allradsinc, allradsPA)
+
         axprofile.plot(rregions_fixincPA,-(psis_fixincPA-allradspsi_fixincPA),linewidth=1.,linestyle='solid',color='grey',label=thislabel,marker='o',markersize=4.)
         #print( "psi errors fixincPA:",psierrors_fixincPA)
         axprofile.fill_between(rregions_fixincPA, -(psis_fixincPA-allradspsi_fixincPA)-psierrors_fixincPA[1,:], -(psis_fixincPA-allradspsi_fixincPA)+psierrors_fixincPA[0,:],lw=0.1,color='grey', alpha=0.2, interpolate=True) #, step='mid'
@@ -88,7 +92,11 @@ def  PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allr
         #print( "ymax=",ymax)
 
     else:
-        thislabel = r'$\psi-%.1f^\circ$ fix $i,\mathrm{PA}$'  %  allradspsi_fixincPA
+        if (allradsinc == ''):
+            thislabel = r'$\psi-%.1f^\circ$ fix $i,\mathrm{PA}$'  %  allradspsi_fixincPA
+        else:
+            thislabel = r'$\psi-%.1f^\circ$, $i$=%.1f PA=%d'  %  (allradspsi_fixincPA,allradsinc, allradsPA)
+
         axprofile.plot(rregions_fixincPA,(psis_fixincPA-allradspsi_fixincPA),linewidth=1.,linestyle='solid',color='grey',label=thislabel,marker='o',markersize=4.)
         #print( "psi errors fixincPA:",psierrors_fixincPA)
         
