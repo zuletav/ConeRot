@@ -462,7 +462,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         axprofile = fig.add_subplot(gs[jpos,0])
         if (alabel == ''):
             alabel=r'fix $i$, PA region av.'
-            alabel=r'$i$=%.1f PA=%d $\phi(R)$' % (allradsinc, allradsPA)
+            alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
         #alabel=''
         v_Phi_prof_mid_fixincPA_allrads = v_Phi_prof_fixincPA_allrads * correct4midplane_fixincPA 
         (vymin,vymax)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA_allrads,sv_Phi_prof_fixincPA_allrads,v_Phi_prof_mid_fixincPA_allrads,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling)
