@@ -7,7 +7,7 @@ import re
 from astropy import constants as const
 
 
-def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,linecolor='grey'):
+def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,linecolor='grey',RadialScaling=True):
 
     # ----------------------------------------------------------------------
     # optimal mass
@@ -78,6 +78,9 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
 
     plotmask = np.where( (rrs >= a_min) & (rrs <= a_max) )
 
-    axprofile.plot(rrs[plotmask],vstar[plotmask]*np.sqrt(rrs[plotmask])/np.sqrt(a_max),color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
+    if RadialScaling:
+        axprofile.plot(rrs[plotmask],vstar[plotmask]*np.sqrt(rrs[plotmask])/np.sqrt(a_max),color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
+    else:
+        axprofile.plot(rrs[plotmask],vstar[plotmask],color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
 
     return
