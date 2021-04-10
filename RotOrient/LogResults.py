@@ -32,10 +32,22 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
         for aline in log_output:
             if Init:
                 #PA= 324.21 inc= 41.47 tanpsi= 0.0 Input systemic velocity:5.712058
-                matches= re.search("^PA= (.*) inc= (.*) tanpsi= (.*) Input.*$",aline)
+                matches= re.search("^PA= (.*) inc= (.*) tanpsi= (.*)\s(.*)$",aline)
                 initPA=float(matches.group(1))
                 initinc=float(matches.group(2))
                 Init=False
+                vsystpart=matches.group(3)
+                matches= re.search("^.*velocity:(.*)$",vsystpart)
+                vsysstring=matches.group(1)
+                if "+-" in vsysstring:
+                    matches= re.search("(.*)\s\+-\s(.*)$",vsysstring)
+                    vsys=float(matches.group(1))
+                else:
+                    vsys=float(vsysstring)
+                
+                #"Calculated systemic velocity:%.6f +- %.6f \n"
+                #"Input systemic velocity:%.6f\n"
+
 
                 
             if AllRads:
@@ -114,10 +126,10 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
             print(">>>fix>>tanpsis_fixincPA_MCMC",tanpsis_fixincPA_MCMC)
             print(">>>fix>>psis_fixincPA_MCMC",180.*(np.arctan(tanpsis_fixincPA_MCMC))/np.pi)
             
-            return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, tanpsis_fixincPA_MCMC,initPA,initinc])
+            return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, tanpsis_fixincPA_MCMC,initPA,initinc,vsys])
         else:
             allradspsi_fixincPA= np.arctan( allradstanpsi_fixincPA) * 180. / np.pi
-            return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA,initPA,initinc])
+            return (RunMCMC, [r1s,r2s, rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA,initPA,initinc,vsys])
             
     else:
 

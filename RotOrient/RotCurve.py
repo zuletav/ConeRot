@@ -5,7 +5,7 @@ import sys
 import ConeRot.RotOrient.StellarMass as StellarMass
 
 
-def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=False,label='',RadialScaling=True):
+def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=False,label='',RadialScaling=True,title=''):
          
     ######################################################################
     # Plot rotation curves
@@ -61,7 +61,7 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
 
 
     if RadialScaling:
-        axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\tilde{v}_{\phi}(r)$ / km s$^{-1}$')
+        axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\tilde{v}_{\phi}(R)$ / km s$^{-1}$')
     else:
         axprofile.set_ylabel(r'$\tilde{v}_{\phi}(R)$ / km s$^{-1}$')
 
@@ -72,6 +72,9 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
 
     plt.setp(axprofile.get_xticklabels(),visible=False) #, fontsize=6)
 
+    if (title != ''):
+        plt.title(title)
+        
     return (ymin,ymax)
 
 
