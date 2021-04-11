@@ -5,13 +5,13 @@ import sys
 import ConeRot.RotOrient.StellarMass as StellarMass
 
 
-def drawgaps(ContinuumGaps,ymin,ymax):
+def drawgaps(axprofile,ContinuumGaps,ymin,ymax):
     for argap in ContinuumGaps:
         if (isinstance(argap,list)):
             argap1=argap[0]
             argap2=argap[1]
             
-            axprofile.fill_between(argap, [ymin,ymax], lw=0.1,color='C4', alpha=0.2, interpolate=True,hatch='/') #, step='mid'
+            axprofile.fill_between(argap, [ymin,ymin], [ymax,ymax], lw=0.1, alpha=0.2, fc='c',hatch='//',zorder=2) #, step='mid'
         else:
             axprofile.plot([argap, argap],[ymin,ymax],color='C4',linewidth=0.5,linestyle='dotted')
             
@@ -52,7 +52,7 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
         StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,RadialScaling=RadialScaling)
 
     if (ContinuumGaps):
-        drawgaps(ContinuumGaps,ymin,ymax)
+        drawgaps(axprofile,ContinuumGaps,ymin,ymax)
 
 
 
@@ -147,7 +147,7 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
     plt.setp(axprofile.get_xticklabels(),visible=VisibleXaxis) #, fontsize=6)
     
     if (ContinuumGaps):
-        drawgaps(ContinuumGaps,ymin,ymax)
+        drawgaps(axprofile,ContinuumGaps,ymin,ymax)
 
     return (ymin,ymax)
 
@@ -219,7 +219,7 @@ def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixin
     plt.setp(axprofile.get_xticklabels(),visible=False) #, fontsize=6)
     
     if (ContinuumGaps):
-        drawgaps(ContinuumGaps,ymin,ymax)
+        drawgaps(axprofile,ContinuumGaps,ymin,ymax)
             
 
 

@@ -25,7 +25,7 @@ rgaps=[0.4433,  0.8575, 1.3923, 2.3]
 
 #Plot_vRot_Global_FixIncPA = False,
 
-def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel='',RadialScaling=True,title='',DoAUBar=False):
+def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel='default',RadialScaling=True,title='',DoAUBar=False):
 
     
     XCheckFixIncPA=False # cross check that the rot curve is the same for global optim  and global init optim for  fix PA and inc (should be the same PA, inc, psi)
@@ -477,7 +477,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if DoFixIncPA and Plot_vRot_VarOrient_FixIncPA:
         axprofile = fig.add_subplot(gs[jpos,0])
-        if (alabel == ''):
+        if (alabel == 'default'):
             alabel=r'fix $i$, PA region av.'
             alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
             
@@ -502,7 +502,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             axprofile.set_ylim(vymin,vymax)
 
             
-        axprofile.legend(loc='upper right')
+        #axprofile.legend(loc='upper right')
+        axprofile.legend()
         
         jpos+=1
 
@@ -547,9 +548,10 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if DoMeridAllRads_fixIncPA and Plot_vRot_VarOrient_FixIncPA:
         axprofile = fig.add_subplot(gs[jpos,0])
-        alabel=r'fix $i$, PA region av.'
-        alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
-        alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
+        if (alabel == 'default'):
+            alabel=r'fix $i$, PA region av.'
+            alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
+            alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
 
         #alabel=''
         (vymin,vymax)=RotCurve.PlotV_z(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_z_prof_fixincPA_allrads,sv_z_prof_fixincPA_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=alabel,RadialScaling=False)
@@ -618,9 +620,10 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         jpos += 1
 
         axprofile = fig.add_subplot(gs[jpos,0])
-        alabel=r'fix $i$, PA region av.'
-        alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
-        alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
+        if (alabel == 'default'):
+            alabel=r'fix $i$, PA region av.'
+            alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
+            alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
 
         # alabel=''
         (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling)
@@ -646,9 +649,10 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         jpos += 1
     elif DoAccrAllRads_fixIncPA and Plot_vRot_VarOrient_FixIncPA:
         axprofile = fig.add_subplot(gs[jpos,0])
-        alabel=r'fix $i$, PA region av.'
-        alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
-        alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
+        if (alabel=='default'):
+            alabel=r'fix $i$, PA region av.'
+            alabel=r'$i$=%.1f PA=%d' % (allradsinc, allradsPA)
+            alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
 
         #alabel=''
         RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling)
