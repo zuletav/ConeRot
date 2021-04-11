@@ -154,7 +154,7 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
 
 
 
-def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=False,ContinuumGaps=False,label='',RadialScaling=False):
+def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=False,ContinuumGaps=False,label='',RadialScaling=False,VisibleXaxis=False):
 
 
     if BackSide:
@@ -216,7 +216,7 @@ def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixin
     axprofile.tick_params(top='on',right='on', direction='in')
     axprofile.tick_params(which='minor', top='on', length = 4, right='on', direction='in')
     
-    plt.setp(axprofile.get_xticklabels(),visible=False) #, fontsize=6)
+    plt.setp(axprofile.get_xticklabels(),visible=VisibleXaxis) #, fontsize=6)
     
     if (ContinuumGaps):
         drawgaps(axprofile,ContinuumGaps,ymin,ymax)

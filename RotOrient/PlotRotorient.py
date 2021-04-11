@@ -25,7 +25,7 @@ rgaps=[0.4433,  0.8575, 1.3923, 2.3]
 
 #Plot_vRot_Global_FixIncPA = False,
 
-def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel='default',RadialScaling=True,title='',DoAUBar=False):
+def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, PlotVarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel='default',RadialScaling=True,title='',DoAUBar=False):
 
     
     XCheckFixIncPA=False # cross check that the rot curve is the same for global optim  and global init optim for  fix PA and inc (should be the same PA, inc, psi)
@@ -47,7 +47,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     #Plot_vRot_VarOrient=False  # if true will plot rotation curve for variable orientation too (so averaged over Regions)
     #Plot_vRot_VarOrient_FixIncPA=False same as Plot_vRot_VarOrient but for fixed PA inc
     
-    #VarOrient=True # will plot the variable orientation PA, inc, tanpsi obtained from the Regions
+    #VarOrient=True # will load the rotation curve data for  the variable orientation PA, inc, tanpsi obtained from the Regions - allrads labels
+    #PlotVarOrient=True # will plot the variable orientation PA, inc, tanpsi obtained from the Regions
     #PlotVarPAinc=True # will plot the variable PA and inc obtained from the Regions
 
 
@@ -95,12 +96,19 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     if os.path.isdir(workdir_fixincPA):
         DoFixIncPA=True
 
+    VisibleXaxis_V_z=False
+    if PlotVarOrient:
+        VisibleXaxis_V_z=False
 
     if (fileout_fig == 'default'):
-        if RadialScaling:
-            fileout_fig=workdir_fixincPA+'fig_rotorient_surfandmid_linear_full.pdf'
+        if PlotVarOrient:
+            fileouttag=workdir_fixincPA+'fig_rotorient_surfandmid_linear_full'
         else:
-            fileout_fig=workdir_fixincPA+'fig_rotorient_surfandmid_linear_full_noscale.pdf'
+            fileouttag=workdir_fixincPA+'fig_rot_surfandmid_linear_full'
+        if RadialScaling:
+            fileout_fig=fileouttag+'.pdf'
+        else:
+            fileout_fig=fileouttag+'_noscale.pdf'
             
     file_profile=workdir+nametag+'_radial_profile.dat'
     file_profile_allrads=workdir+nametag+'_allrads_radial_profile.dat'
@@ -186,7 +194,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         nplotsy+=1    
 
 
-    if VarOrient:
+    if PlotVarOrient:
         nplotsy+=1
 
     if Plot_vRot_VarOrient:
@@ -232,11 +240,13 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     figxsize=7.
     figysize=nplotsy*2.7
     figxsize=6.
+    #figysize=nplotsy*2.25
+    figxsize=5.
 
     fig = plt.figure(constrained_layout=True,figsize=(figxsize,figysize))
     gs = fig.add_gridspec(nplotsy, 1) #, width_ratios=[2., 1., 1.], height_ratios=[1.,1.])
 
-    if VarOrient:
+    if PlotVarOrient:
         axprofile = fig.add_subplot(gs[(nplotsy-1),0])
 
     RunMCMC=False
@@ -376,7 +386,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
                 psierrors_fixincPA[1,ir]=180.*(np.arctan(atanpsi[1]+atanpsi[0])-np.arctan(atanpsi[0]))/np.pi
                 psierrors_fixincPA[0,ir]=180.*(np.arctan(atanpsi[0])-np.arctan(atanpsi[0]-atanpsi[2]))/np.pi
 
-        if VarOrient:
+        if PlotVarOrient:
             (ymin_fixincPA,ymax_fixincPA)=Orient.PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, psierrors_fixincPA,allradsinc=initinc, allradsPA=initPA)
             if DoAUBar:
                 barlength=10. / distance
@@ -390,7 +400,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         print( "Psi fixincPA= %.1f +- %.1f deg" % (allradspsi_fixincPA,sigma_psi_fixincPA))
 
 
-    if VarOrient:
+    if PlotVarOrient:
 
         if not PlotVarPAinc:
             #ymin=min(ymin,ymin_fixincPA)
@@ -406,21 +416,18 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
         axprofile.set_xlim(a_min,a_max)
         axprofile.set_ylim(ymin, ymax)
+        
         axprofile.set_ylabel(r'deg')
+        axprofile.legend(loc='upper left')
+        
         axprofile.set_xlabel(r'$R$ / arcsec')
 
-        #axprofile.legend(fontsize=16)
-        #axprofile.legend()
-        axprofile.legend(loc='upper left')
-
-
-        #axprofile.legend()
         axprofile.tick_params(axis='both', length = 8,  direction='in', pad=10)
         axprofile.tick_params(top='on',right='on', direction='in')
         axprofile.tick_params(which='minor', top='on', length = 4, right='on', direction='in')
         axprofile.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         axprofile.xaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
-
+        
 
     if ForceGlobalOrient:
         print(">>>>>> Plotting  Fix Orient, with forced global orientation, at PA=",Force_allradsPA," inc=",Force_allradsinc)
@@ -509,7 +516,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if (DoMerid and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'global',RadialScaling=False)
+        RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'global',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
         jpos+=1
         axprofile = fig.add_subplot(gs[jpos,0])
         RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=True,RadialScaling=RadialScaling)
@@ -522,7 +529,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if (DoMerid_fixIncPA and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'',RadialScaling=False)
+        RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
         jpos+=1
         axprofile = fig.add_subplot(gs[jpos,0])
         RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'',VisibleXaxis=True,RadialScaling=RadialScaling)
@@ -535,14 +542,14 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if DoMeridAllRads and Plot_vRot_VarOrient:
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_z(axprofile,rrs_allrads,a_min,a_max,v_z_prof_allrads,sv_z_prof_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=r'region av.',RadialScaling=False)
+        RotCurve.PlotV_z(axprofile,rrs_allrads,a_min,a_max,v_z_prof_allrads,sv_z_prof_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=r'region av.',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
         jpos += 1
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_allrads,a_min,a_max,v_R_prof_allrads,sv_R_prof_allrads,ContinuumGaps=rgaps,label=r'region av.',RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_allrads,a_min,a_max,v_R_prof_allrads,sv_R_prof_allrads,ContinuumGaps=rgaps,label=r'region av.',VisibleXaxis=True,RadialScaling=RadialScaling)
         jpos += 1
     elif DoAccrAllRads and Plot_vRot_VarOrient:
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_allrads,a_min,a_max,v_R_prof_allrads,sv_R_prof_allrads,ContinuumGaps=rgaps,label=r'region av.',RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_allrads,a_min,a_max,v_R_prof_allrads,sv_R_prof_allrads,ContinuumGaps=rgaps,label=r'region av.',VisibleXaxis=True,RadialScaling=RadialScaling)
         jpos += 1
 
 
@@ -554,7 +561,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
 
         #alabel=''
-        (vymin,vymax)=RotCurve.PlotV_z(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_z_prof_fixincPA_allrads,sv_z_prof_fixincPA_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=alabel,RadialScaling=False)
+        (vymin,vymax)=RotCurve.PlotV_z(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_z_prof_fixincPA_allrads,sv_z_prof_fixincPA_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=alabel,RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
         if WithComparData:
             # Rich Teague data
             axprofile.plot(rrs_ComparData,v_z_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_z$ eddy')
@@ -626,7 +633,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
 
         # alabel=''
-        (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling)
+        (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling,VisibleXaxis=True)
         if WithComparData:
             # Rich Teague data
             axprofile.plot(rrs_ComparData,v_rad_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
@@ -655,7 +662,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
 
         #alabel=''
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling,VisibleXaxis=True,)
         if WithComparData:
             # Rich Teague data
             axprofile.plot(rrs_ComparData,v_rad_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
@@ -665,17 +672,22 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         jpos += 1
 
 
-    if (not VarOrient):
+    if (not PlotVarOrient):
         axprofile = fig.add_subplot(gs[-1,0])
+        
+        #plt.setp(axprofile.get_xticklabels(),visible=True) #, fontsize=6)
+        axprofile.set_xlim(a_min,a_max)
+        print("LAST a_min ",a_min," a_max",a_max)
+        print("VisibileXaxis_V_z",VisibleXaxis_V_z)
+        print("axprofile.get_xticklabels()",axprofile.get_xticklabels())
+        axprofile.set_xlabel(r'$R$ / arcsec')
+
         axprofile.tick_params(axis='both', length = 8,  direction='in', pad=10)
         axprofile.tick_params(top='on',right='on', direction='in')
         axprofile.tick_params(which='minor', top='on', length = 4, right='on', direction='in')
         axprofile.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         axprofile.xaxis.set_minor_formatter(matplotlib.ticker.ScalarFormatter())
 
-        #plt.setp(axprofile.get_xticklabels(),visible=True) #, fontsize=6)
-        axprofile.set_xlim(a_min,a_max)
-        axprofile.set_xlabel(r'$R$ / arcsec')
 
         
     plt.subplots_adjust(hspace=0.)
