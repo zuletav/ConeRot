@@ -97,8 +97,10 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         DoFixIncPA=True
 
     VisibleXaxis_V_z=False
+    VisibleXaxis_V_R=True
     if PlotVarOrient:
         VisibleXaxis_V_z=False
+        VisibleXaxis_V_R=False
 
     if (fileout_fig == 'default'):
         if PlotVarOrient:
@@ -519,11 +521,11 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'global',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
         jpos+=1
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=True,RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScaling)
         jpos+=1
     elif (DoAccr and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=True,RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScaling)
         jpos+=1
 
 
@@ -532,11 +534,11 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
         jpos+=1
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'',VisibleXaxis=True,RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScaling)
         jpos+=1
     elif (DoAccr_fixIncPA and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'',VisibleXaxis=True,RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScaling)
         jpos+=1
 
 
@@ -545,11 +547,11 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         RotCurve.PlotV_z(axprofile,rrs_allrads,a_min,a_max,v_z_prof_allrads,sv_z_prof_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=r'region av.',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
         jpos += 1
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_allrads,a_min,a_max,v_R_prof_allrads,sv_R_prof_allrads,ContinuumGaps=rgaps,label=r'region av.',VisibleXaxis=True,RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_allrads,a_min,a_max,v_R_prof_allrads,sv_R_prof_allrads,ContinuumGaps=rgaps,label=r'region av.',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScaling)
         jpos += 1
     elif DoAccrAllRads and Plot_vRot_VarOrient:
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_R(axprofile,rrs_allrads,a_min,a_max,v_R_prof_allrads,sv_R_prof_allrads,ContinuumGaps=rgaps,label=r'region av.',VisibleXaxis=True,RadialScaling=RadialScaling)
+        RotCurve.PlotV_R(axprofile,rrs_allrads,a_min,a_max,v_R_prof_allrads,sv_R_prof_allrads,ContinuumGaps=rgaps,label=r'region av.',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScaling)
         jpos += 1
 
 
@@ -633,7 +635,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
 
         # alabel=''
-        (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling,VisibleXaxis=True)
+        (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling,VisibleXaxis=VisibleXaxis_V_R)
         if WithComparData:
             # Rich Teague data
             axprofile.plot(rrs_ComparData,v_rad_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
@@ -662,7 +664,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
 
         #alabel=''
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling,VisibleXaxis=True,)
+        RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling,VisibleXaxis=VisibleXaxis_V_R,)
         if WithComparData:
             # Rich Teague data
             axprofile.plot(rrs_ComparData,v_rad_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
