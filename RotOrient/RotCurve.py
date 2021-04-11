@@ -69,7 +69,7 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
         axprofile.text(a_min+(a_max-a_min)*0.05,ymax-(ymax-ymin)*0.12,label)
     
     #axprofile.legend(fontsize=16)
-    axprofile.legend(loc='upper left')
+    axprofile.legend() # loc='upper left')
 
 
     if RadialScaling:
