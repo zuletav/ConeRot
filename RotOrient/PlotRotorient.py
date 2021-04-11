@@ -25,7 +25,7 @@ rgaps=[0.4433,  0.8575, 1.3923, 2.3]
 
 #Plot_vRot_Global_FixIncPA = False,
 
-def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel='',RadialScaling=True,title=''):
+def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel='',RadialScaling=True,title='',DoAUBar=False):
 
     
     XCheckFixIncPA=False # cross check that the rot curve is the same for global optim  and global init optim for  fix PA and inc (should be the same PA, inc, psi)
@@ -312,6 +312,12 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             print("PAs",PAs)
 
             (ymin, ymax) = Orient.PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allradsinc,incerrors, psis, allradspsi, psierrors)
+            if DoAUBar:
+                barlength=10. / distance
+                xxs=[a_max-(a_max-a_min)*0.05, a_max-(a_max-a_min)*0.05-barlength]
+                yys=[ymin_fixincPA+(ymax_fixincPA-ymin_fixincPA)*0.08,ymin_fixincPA+(ymax_fixincPA-ymin_fixincPA)*0.08]
+                axprofile.text(xx[0],yys[0]+(ymax_fixincPA-ymin_fixincPA)*0.03,'10 au')
+                axprofile.plot(xxs,yys,color='C5')
 
 
         sigma_PA=np.std(PAs)
@@ -372,7 +378,14 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
         if VarOrient:
             (ymin_fixincPA,ymax_fixincPA)=Orient.PlotOrientProfile_fixincPA(axprofile,rregions_fixincPA, psis_fixincPA, allradspsi_fixincPA, psierrors_fixincPA,allradsinc=initinc, allradsPA=initPA)
+            if DoAUBar:
+                barlength=10. / distance
+                xxs=[a_max-(a_max-a_min)*0.05, a_max-(a_max-a_min)*0.05-barlength]
+                yys=[ymin_fixincPA+(ymax_fixincPA-ymin_fixincPA)*0.08,ymin_fixincPA+(ymax_fixincPA-ymin_fixincPA)*0.08]
+                axprofile.text(xxs[1],yys[0]+(ymax_fixincPA-ymin_fixincPA)*0.05,'10 au')
 
+                axprofile.plot(xxs,yys,color='C5')
+                
         sigma_psi_fixincPA=np.std(psis_fixincPA)
         print( "Psi fixincPA= %.1f +- %.1f deg" % (allradspsi_fixincPA,sigma_psi_fixincPA))
 
@@ -397,7 +410,9 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         axprofile.set_xlabel(r'$R$ / arcsec')
 
         #axprofile.legend(fontsize=16)
-        axprofile.legend()
+        #axprofile.legend()
+        axprofile.legend(loc='upper left')
+
 
         #axprofile.legend()
         axprofile.tick_params(axis='both', length = 8,  direction='in', pad=10)
