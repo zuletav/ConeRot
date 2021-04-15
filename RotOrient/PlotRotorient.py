@@ -51,6 +51,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     #PlotVarOrient=True # will plot the variable orientation PA, inc, tanpsi obtained from the Regions
     #PlotVarPAinc=True # will plot the variable PA and inc obtained from the Regions
 
+    if not PlotVarOrient:
+        PlotVarPAinc=False
 
     XCheckFixIncPA=False # cross check that the rot curve is the same for global optim  and global init optim for  fix PA and inc (should be the same PA, inc, psi)
 
