@@ -11,7 +11,8 @@ def drawgaps(axprofile,ContinuumGaps,ymin,ymax):
             argap1=argap[0]
             argap2=argap[1]
             
-            axprofile.fill_between(argap, [ymin,ymin], [ymax,ymax], lw=0.1, alpha=0.08, fc='c',hatch='//',zorder=2) #, step='mid'
+            #axprofile.fill_between(argap, [ymin,ymin], [ymax,ymax], lw=0.1, alpha=0.08, fc='c',hatch='//',zorder=2) #, step='mid'
+            axprofile.fill_between(argap, [ymin,ymin], [ymax,ymax], lw=0.1, alpha=0.1, fc='c',zorder=2) #, step='mid'
         else:
             axprofile.plot([argap, argap],[ymin,ymax],color='C4',linewidth=0.5,linestyle='dotted')
             
