@@ -94,9 +94,13 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     workdir_fixincPA=re.sub('/$','_fixPAinc/',workdir)
     DoFixIncPA=False
+
+    print("testing workdir_fixincPA",workdir_fixincPA)
     
     if os.path.isdir(workdir_fixincPA):
         DoFixIncPA=True
+    else:
+        print("not found, no workdir_fixincPA",workdir_fixincPA)
 
     VisibleXaxis_V_z=False
     VisibleXaxis_V_R=True
@@ -109,6 +113,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             fileouttag=workdir_fixincPA+'fig_rotorient_surfandmid_linear_full'
         else:
             fileouttag=workdir_fixincPA+'fig_rot_surfandmid_linear_full'
+        if DoAUBar:
+            fileouttag+='_wAUbar'
         if RadialScaling:
             fileout_fig=fileouttag+'.pdf'
         else:
@@ -326,6 +332,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             print("PAs",PAs)
 
             (ymin, ymax) = Orient.PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allradsinc,incerrors, psis, allradspsi, psierrors)
+            
             if DoAUBar:
                 barlength=10. / distance
                 xxs=[a_max-(a_max-a_min)*0.05, a_max-(a_max-a_min)*0.05-barlength]
@@ -333,7 +340,23 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
                 axprofile.text(xx[0],yys[0]+(ymax_fixincPA-ymin_fixincPA)*0.03,'10 au')
                 axprofile.plot(xxs,yys,color='C5')
 
+            
+            save_prof = np.zeros((len(rregions),6))
+            save_prof[:,0] = rregions
+            save_prof[:,1] = PAs
+            save_prof[:,2] = PAerrors[0,:]
+            save_prof[:,2] = PAerrors[1,:]
+            save_prof[:,3] = incs
+            save_prof[:,3] = incerrors[0,:]
+            save_prof[:,3] = incerrors[1,:]
+            save_prof[:,4] = psis
+            save_prof[:,5] = psierrors[0,:]
+            save_prof[:,5] = psierrors[1,:]
+            fileout_orientprofile=workdir_fixincPA+'orient_profile.dat'
+            np.savetxt(fileout_orientprofile, save_prof)   # x,y,z equal sized 1D arrays
 
+            
+            
         sigma_PA=np.std(PAs)
         sigma_inc=np.std(incs)
         sigma_psi=np.std(psis)
@@ -399,6 +422,17 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
                 axprofile.text(xxs[1],yys[0]+(ymax_fixincPA-ymin_fixincPA)*0.05,'10 au')
 
                 axprofile.plot(xxs,yys,color='C5')
+
+                       
+            save_prof = np.zeros((len(rregions_fixincPA),4))
+            save_prof[:,0] = rregions_fixincPA
+            save_prof[:,1] = psis_fixincPA
+            save_prof[:,2] = psierrors_fixincPA[0,:]
+            save_prof[:,3] = psierrors_fixincPA[1,:]
+            
+            fileout_orientprofile=workdir_fixincPA+'psi_profile.dat'
+            np.savetxt(fileout_orientprofile, save_prof)   # x,y,z equal sized 1D arrays
+     
                 
         sigma_psi_fixincPA=np.std(psis_fixincPA)
         print( "Psi fixincPA= %.1f +- %.1f deg" % (allradspsi_fixincPA,sigma_psi_fixincPA))
