@@ -73,14 +73,25 @@ def KepMass(axprofile,rrs,cosi,bmaj,v_Phi_prof,sv_Phi_prof,distance,a_min,a_max,
     print( "radial Mstar error on mean: ",np.std(Ms)/np.sqrt(Nind_rad),"Msun")
 
         
-    vstar = 1E-3*np.sqrt( const.G.value  * Mstar * const.M_sun.value / RRs )
-    vstar[0]=0.
+    vkep = 1E-3*np.sqrt( const.G.value  * Mstar * const.M_sun.value / RRs )
+    vkep[0]=0.
 
     plotmask = np.where( (rrs >= a_min) & (rrs <= a_max) )
 
-    if RadialScaling:
-        axprofile.plot(rrs[plotmask],vstar[plotmask]*np.sqrt(rrs[plotmask])/np.sqrt(a_max),color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
+    VKepNorm=True
+    print("type RadialSaling",type(RadialScaling))
+    if isinstance(RadialScaling,np.ndarray):
+        vnorm=RadialScaling
+        axprofile.plot(rrs[plotmask], (vkep[plotmask]-vnorm[plotmask])/vnorm[plotmask],color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
+    elif RadialScaling:
+        if VKepNorm:
+            axprofile.plot(rrs[plotmask],0.*vkep[plotmask],color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
+            vnorm=vkep
+        else:
+            axprofile.plot(rrs[plotmask],vkep[plotmask]*np.sqrt(rrs[plotmask])/np.sqrt(a_max),color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
+            vnorm=np.sqrt(rrs[plotmask])/np.sqrt(a_max)
     else:
-        axprofile.plot(rrs[plotmask],vstar[plotmask],color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
-
-    return
+        axprofile.plot(rrs[plotmask],vkep[plotmask],color=linecolor,linewidth=2.0,alpha=1.0,linestyle='dashed',label=str("%.2f" % Mstar)+r'$\,M_\odot$')
+        vnorm=1.
+        
+    return [vnorm,Mstar]

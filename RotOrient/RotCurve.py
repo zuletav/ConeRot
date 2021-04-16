@@ -24,6 +24,10 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
     # Plot rotation curves
 
  
+
+    if (DoStellarMass):
+        [vnorm,Mstar]=StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,RadialScaling=RadialScaling)
+
     rmax=np.max(rrs_fixincPA)
 
     axprofile.set_xlim(a_min,a_max)
@@ -33,24 +37,28 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
     
     scale_radprofile=1.
     if RadialScaling:
-        scale_radprofile=(np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max))
+        if DoStellarMass:
+            scale_radprofile=vnorm[maskrange]
+        else:
+            scale_radprofile=(np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max))
+        voff=scale_radprofile
+    else:
+        voff=0.
         
-    ymin=0.99*np.min((v_Phi_prof_fixincPA[maskrange]-sv_Phi_prof_fixincPA[maskrange]) * scale_radprofile)
+    ymin=0.99*np.min( ((v_Phi_prof_fixincPA[maskrange]-sv_Phi_prof_fixincPA[maskrange]) - voff) / scale_radprofile)
 
-    dup = (v_Phi_prof_fixincPA[maskrange]+sv_Phi_prof_fixincPA[maskrange]) * scale_radprofile # (np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max))
-    dup_corr = v_Phi_prof_mid_fixincPA[maskrange] * scale_radprofile # (np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max))
+    dup = ( (v_Phi_prof_fixincPA[maskrange]+sv_Phi_prof_fixincPA[maskrange]) - voff) / scale_radprofile # (np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max))
+    
+    dup_corr = (v_Phi_prof_mid_fixincPA[maskrange] - voff)  / scale_radprofile # (np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max))
 
     ymax=1.005*np.max(np.concatenate((dup, dup_corr)))
     
     axprofile.set_ylim(ymin,ymax)
 
-    axprofile.fill_between(rrs_fixincPA[plotmask], (v_Phi_prof_fixincPA[plotmask]+sv_Phi_prof_fixincPA[plotmask])*scale_radprofile, (v_Phi_prof_fixincPA[plotmask]-sv_Phi_prof_fixincPA[plotmask])*scale_radprofile, lw=0.1,color='grey', alpha=0.2, interpolate=True) #, step='mid'
+    axprofile.fill_between(rrs_fixincPA[plotmask], (((v_Phi_prof_fixincPA[plotmask]+sv_Phi_prof_fixincPA[plotmask])-voff)/scale_radprofile), ( (v_Phi_prof_fixincPA[plotmask]-sv_Phi_prof_fixincPA[plotmask]  - voff ) / scale_radprofile), lw=0.1,color='grey', alpha=0.2, interpolate=True) #, step='mid'
 
-    axprofile.plot(rrs_fixincPA[plotmask],v_Phi_prof_fixincPA[plotmask]*scale_radprofile,color='grey',linewidth=1.5,linestyle='solid',label=r'$v_\phi$')
+    axprofile.plot(rrs_fixincPA[plotmask],((v_Phi_prof_fixincPA[plotmask]-voff)/scale_radprofile),color='grey',linewidth=1.5,linestyle='solid',label=r'$v_\phi$')
 
-
-    if (DoStellarMass):
-        StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,RadialScaling=RadialScaling)
 
     if (ContinuumGaps):
         drawgaps(axprofile,ContinuumGaps,ymin,ymax)
@@ -62,9 +70,9 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
 
 
 
-    axprofile.plot(rrs_fixincPA[plotmask],v_Phi_prof_mid_fixincPA[plotmask]*scale_radprofile,color='cornflowerblue',linewidth=1.5,linestyle='solid',label=r'$v_\phi$ mid.')
+    axprofile.plot(rrs_fixincPA[plotmask],(v_Phi_prof_mid_fixincPA[plotmask]-voff)/scale_radprofile,color='cornflowerblue',linewidth=1.5,linestyle='solid',label=r'$v_\phi$ mid.')
     if (DoStellarMass):
-        StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_mid_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,linecolor='cornflowerblue',RadialScaling=RadialScaling)
+        StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_mid_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,linecolor='cornflowerblue',RadialScaling=vnorm)
 
     if (label != ''):
         axprofile.text(a_min+(a_max-a_min)*0.05,ymax-(ymax-ymin)*0.12,label)
@@ -72,9 +80,12 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
     #axprofile.legend(fontsize=16)
     axprofile.legend() # loc='upper left')
 
-
+    VKepNorm=True
     if RadialScaling:
-        axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\tilde{v}_{\phi}(R)$ / km s$^{-1}$')
+        if VKepNorm:
+            axprofile.set_ylabel(r'$(\tilde{v}_{\phi}(R) - v_K)/v_K$')
+        else:
+            axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\tilde{v}_{\phi}(R)$ / km s$^{-1}$')
     else:
         axprofile.set_ylabel(r'$\tilde{v}_{\phi}(R)$ / km s$^{-1}$')
 
@@ -88,7 +99,7 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
     if (title != ''):
         plt.title(title)
         
-    return (ymin,ymax)
+    return (ymin,ymax,voff,scale_radprofile)
 
 
 def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=False,label='',VisibleXaxis=False,RadialScaling=True):
@@ -105,7 +116,11 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
     maskrange=plotmask
     
     scale_radprofile=1.
-    if RadialScaling:
+    voff=0.
+    if isinstance(RadialScaling,np.ndarray):
+        scale_radprofile=RadialScaling
+        voff=0.
+    elif RadialScaling:
         scale_radprofile=(np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max))
 
     #from pprint import pprint
@@ -114,14 +129,16 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
     
 
     
-    ymin=1.01*np.min((v_R_prof_fixincPA[maskrange] - sv_R_prof_fixincPA[maskrange]) * scale_radprofile)
-    ymax=1.01*np.max((v_R_prof_fixincPA[maskrange] + sv_R_prof_fixincPA[maskrange]) * scale_radprofile)
+    ymin=1.01*np.min( ((v_R_prof_fixincPA[maskrange] - sv_R_prof_fixincPA[maskrange]) - voff) / scale_radprofile)
+    ymax=1.01*np.max( ((v_R_prof_fixincPA[maskrange] + sv_R_prof_fixincPA[maskrange]) - voff) / scale_radprofile)
 
 
 
-    axprofile.plot(rrs_fixincPA[plotmask],v_R_prof_fixincPA[plotmask]*scale_radprofile,color='C0',linewidth=1.5,linestyle='solid',label=r'$v_R$')
+    axprofile.plot(rrs_fixincPA[plotmask],(v_R_prof_fixincPA[plotmask]-voff)/scale_radprofile,color='C0',linewidth=1.5,linestyle='solid',label=r'$v_R$')
 
-    if RadialScaling:
+    if isinstance(RadialScaling,np.ndarray):
+        axprofile.set_ylabel(r'$\tilde{v}_{R}(R) / v_K$')
+    elif RadialScaling:
         axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\tilde{v}_{R}(R)$ / km s$^{-1}$')
     else:
         axprofile.set_ylabel(r'$\tilde{v}_{R}(R)$ / km s$^{-1}$')
@@ -129,7 +146,7 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
     #print( "wcols v_R")
     #print((np.array(zip(rrs_fixincPA[plotmask],v_R_prof_fixincPA[plotmask]+sv_R_prof_fixincPA[plotmask]))))
 
-    axprofile.fill_between(rrs_fixincPA[plotmask], (v_R_prof_fixincPA[plotmask]+sv_R_prof_fixincPA[plotmask])*scale_radprofile, (v_R_prof_fixincPA[plotmask]-sv_R_prof_fixincPA[plotmask])*scale_radprofile, lw=0.1,color='C0', alpha=0.2, interpolate=True) #, step='mid'
+    axprofile.fill_between(rrs_fixincPA[plotmask], ((v_R_prof_fixincPA[plotmask]+sv_R_prof_fixincPA[plotmask]) -voff)/scale_radprofile, ((v_R_prof_fixincPA[plotmask]-sv_R_prof_fixincPA[plotmask]) - voff)/scale_radprofile, lw=0.1,color='C0', alpha=0.2, interpolate=True) #, step='mid'
 
     axprofile.plot(rrs_fixincPA[plotmask], rrs_fixincPA[plotmask]*0.,color='grey',linewidth=0.5,linestyle='dotted')
 
