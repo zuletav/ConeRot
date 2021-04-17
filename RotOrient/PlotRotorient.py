@@ -25,7 +25,7 @@ rgaps=[0.4433,  0.8575, 1.3923, 2.3]
 
 #Plot_vRot_Global_FixIncPA = False,
 
-def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, PlotVarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel='default',RadialScaling=True,title='',DoAUBar=False):
+def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_max=-1,WithComparData=False,WithComparRadTWind=False,rgaps=False,fileout_fig='default',Plot_vRot_Global=False, Plot_vRot_VarOrient=False, VarOrient=True, PlotVarOrient=True, Plot_vRot_VarOrient_FixIncPA = True, PlotVarPAinc=True, ForceGlobalOrient=False, Force_allradsPA=0., Force_allradsinc=0.,alabel='default',RadialScaling=True,title='',DoAUBar=False,MidPlaneExtrapol=True):
 
     
     XCheckFixIncPA=False # cross check that the rot curve is the same for global optim  and global init optim for  fix PA and inc (should be the same PA, inc, psi)
@@ -505,20 +505,20 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     if Plot_vRot_Global:
         axprofile = fig.add_subplot(gs[jpos,0])
         #RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof,sv_Phi_prof,v_Phi_prof_mid,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'global')
-        (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'',RadialScaling=RadialScaling,title=title)
+        (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'',RadialScaling=RadialScaling,title=title,MidPlaneExtrapol=MidPlaneExtrapol)
         jpos+=1
 
 
     if DoFixIncPA and XCheckFixIncPA:
         axprofile = fig.add_subplot(gs[jpos,0])
-        (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'fix $i$, PA global',RadialScaling=RadialScaling,title=title)
+        (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'fix $i$, PA global',RadialScaling=RadialScaling,title=title,MidPlaneExtrapol=MidPlaneExtrapol)
         jpos+=1
 
 
     if Plot_vRot_VarOrient:
         axprofile = fig.add_subplot(gs[jpos,0])
         v_Phi_prof_mid_allrads = v_Phi_prof_allrads * correct4midplane   
-        (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_allrads,a_min,a_max,v_Phi_prof_allrads,sv_Phi_prof_allrads,v_Phi_prof_mid_allrads,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'region av.',RadialScaling=RadialScaling,title=title)
+        (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_allrads,a_min,a_max,v_Phi_prof_allrads,sv_Phi_prof_allrads,v_Phi_prof_mid_allrads,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'region av.',RadialScaling=RadialScaling,title=title,MidPlaneExtrapol=MidPlaneExtrapol)
         jpos += 1
 
     if DoFixIncPA and Plot_vRot_VarOrient_FixIncPA:
@@ -528,7 +528,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             alabel=r'$i$=%.1f PA=%d $\psi(R)$' % (allradsinc, allradsPA)
             
         v_Phi_prof_mid_fixincPA_allrads = v_Phi_prof_fixincPA_allrads * correct4midplane_fixincPA 
-        (vymin,vymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA_allrads,sv_Phi_prof_fixincPA_allrads,v_Phi_prof_mid_fixincPA_allrads,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling,title=title)
+        (vymin,vymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA_allrads,sv_Phi_prof_fixincPA_allrads,v_Phi_prof_mid_fixincPA_allrads,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScaling,title=title,MidPlaneExtrapol=MidPlaneExtrapol)
 
         #print("v_Phi_prof_fixincPA_allrads*np.sqrt(rrs_allrads)/np.sqrt(a_max)",v_Phi_prof_fixincPA_allrads*np.sqrt(rrs_allrads)/np.sqrt(a_max))
                 

@@ -18,7 +18,7 @@ def drawgaps(axprofile,ContinuumGaps,ymin,ymax):
             
             
 
-def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=False,label='',RadialScaling=True,title=''):
+def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=False,label='',RadialScaling=True,title='',MidPlaneExtrapol=True):
          
     ######################################################################
     # Plot rotation curves
@@ -51,13 +51,30 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
     
     dup_corr = (v_Phi_prof_mid_fixincPA[maskrange] - voff)  / scale_radprofile # (np.sqrt(rrs_fixincPA[maskrange])/np.sqrt(a_max))
 
-    ymax=1.005*np.max(np.concatenate((dup, dup_corr)))
-    
+    if MidPlaneExtrapol:
+        ymax=1.005*np.max(np.concatenate((dup, dup_corr)))
+    else:
+        ymax=1.005*np.max(dup)
+        
     axprofile.set_ylim(ymin,ymax)
 
     axprofile.fill_between(rrs_fixincPA[plotmask], (((v_Phi_prof_fixincPA[plotmask]+sv_Phi_prof_fixincPA[plotmask])-voff)/scale_radprofile), ( (v_Phi_prof_fixincPA[plotmask]-sv_Phi_prof_fixincPA[plotmask]  - voff ) / scale_radprofile), lw=0.1,color='grey', alpha=0.2, interpolate=True) #, step='mid'
+    
+    
+    VKepNorm=True
+    if RadialScaling:
+        if VKepNorm:
+            axprofile.set_ylabel('')
+            linelabel=r'$(\overline{v}_{\phi} - v_K)/v_K$'
+        else:
+            axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\overline{v}_{\phi}(R)$ / km s$^{-1}$')
+            linelabel=r'$\overline{v}_\phi$'
+    else:
+        axprofile.set_ylabel(r'$\overline{v}_{\phi}$ / km s$^{-1}$')
+        linelabel=r'$\overline{v}_\phi$'
 
-    axprofile.plot(rrs_fixincPA[plotmask],((v_Phi_prof_fixincPA[plotmask]-voff)/scale_radprofile),color='grey',linewidth=1.5,linestyle='solid',label=r'$v_\phi$')
+
+    axprofile.plot(rrs_fixincPA[plotmask],((v_Phi_prof_fixincPA[plotmask]-voff)/scale_radprofile),color='grey',linewidth=1.5,linestyle='solid',label=linelabel)
 
 
     if (ContinuumGaps):
@@ -69,25 +86,17 @@ def PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof
     #print( "ymax v_Phi_prof_mid_fixincPA", np.max(v_Phi_prof_mid_fixincPA[plotmask]*np.sqrt(rrs_fixincPA[plotmask])/np.sqrt(a_max)))
 
 
-
-    axprofile.plot(rrs_fixincPA[plotmask],(v_Phi_prof_mid_fixincPA[plotmask]-voff)/scale_radprofile,color='cornflowerblue',linewidth=1.5,linestyle='solid',label=r'$v_\phi$ mid.')
-    if (DoStellarMass):
-        StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_mid_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,linecolor='cornflowerblue',RadialScaling=vnorm)
+    if MidPlaneExtrapol:
+        linelabel+=' mid.'
+        axprofile.plot(rrs_fixincPA[plotmask],(v_Phi_prof_mid_fixincPA[plotmask]-voff)/scale_radprofile,color='cornflowerblue',linewidth=1.5,linestyle='solid',label=linelabel)
+        if (DoStellarMass):
+            StellarMass.KepMass(axprofile,rrs_fixincPA,cosi,bmaj,v_Phi_prof_mid_fixincPA,sv_Phi_prof_fixincPA,distance,a_min,a_max,linecolor='cornflowerblue',RadialScaling=vnorm)
 
     if (label != ''):
         axprofile.text(a_min+(a_max-a_min)*0.05,ymax-(ymax-ymin)*0.12,label)
     
     #axprofile.legend(fontsize=16)
     axprofile.legend() # loc='upper left')
-
-    VKepNorm=True
-    if RadialScaling:
-        if VKepNorm:
-            axprofile.set_ylabel(r'$(\tilde{v}_{\phi}(R) - v_K)/v_K$')
-        else:
-            axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\tilde{v}_{\phi}(R)$ / km s$^{-1}$')
-    else:
-        axprofile.set_ylabel(r'$\tilde{v}_{\phi}(R)$ / km s$^{-1}$')
 
 
     axprofile.tick_params(axis='both', length = 8,  direction='in', pad=10)
@@ -134,14 +143,18 @@ def PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixin
 
 
 
-    axprofile.plot(rrs_fixincPA[plotmask],(v_R_prof_fixincPA[plotmask]-voff)/scale_radprofile,color='C0',linewidth=1.5,linestyle='solid',label=r'$v_R$')
 
     if isinstance(RadialScaling,np.ndarray):
-        axprofile.set_ylabel(r'$\tilde{v}_{R}(R) / v_K$')
+        axprofile.set_ylabel('')
+        linelabel=r'$\overline{v}_{R} / v_K$'
     elif RadialScaling:
-        axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\tilde{v}_{R}(R)$ / km s$^{-1}$')
+        axprofile.set_ylabel(r'$\sqrt{R/'+str(a_max)+'} \\times \\overline{v}_{R}$ / km s$^{-1}$')
+        linelabel=r'$\overline{v}_R$'
     else:
-        axprofile.set_ylabel(r'$\tilde{v}_{R}(R)$ / km s$^{-1}$')
+        axprofile.set_ylabel(r'$\overline{v}_{R}$ / km s$^{-1}$')
+        linelabel=r'$\overline{v}_R$'
+
+    axprofile.plot(rrs_fixincPA[plotmask],(v_R_prof_fixincPA[plotmask]-voff)/scale_radprofile,color='C0',linewidth=1.5,linestyle='solid',label=linelabel)
 
     #print( "wcols v_R")
     #print((np.array(zip(rrs_fixincPA[plotmask],v_R_prof_fixincPA[plotmask]+sv_R_prof_fixincPA[plotmask]))))
@@ -203,17 +216,20 @@ def PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixin
     ymax=1.01*np.max((v_z_prof_fixincPA[maskrange] + sv_z_prof_fixincPA[maskrange]) * scale_radprofile)
 
           
-    axprofile.plot(rrs_fixincPA[plotmask],v_z_prof_fixincPA[plotmask]*scale_radprofile,color='C0',linewidth=1.5,linestyle='solid',label=r'$v_z$')
     if BackSide:
         prefix=r'$-$'
     else:
         prefix=''
 
     if RadialScaling:
-        axprofile.set_ylabel(prefix+r'$\sqrt{R/'+str(a_max)+'} \\times \\tilde{v}_{z}(R)$ / km s$^{-1}$')
+        linelabel=r'$\overline{v}_z$'
+        axprofile.set_ylabel(prefix+r'$\sqrt{R/'+str(a_max)+'} \\times \\overline{v}_{z}(R)$ / km s$^{-1}$')
     else:
-        axprofile.set_ylabel(prefix+r'$\tilde{v}_{z}(R)$ / km s$^{-1}$')
+        linelabel=prefix+r'$\overline{v}_{z}$ / km s$^{-1}$'
+        axprofile.set_ylabel('')
 
+    axprofile.plot(rrs_fixincPA[plotmask],v_z_prof_fixincPA[plotmask]*scale_radprofile,color='C0',linewidth=1.5,linestyle='solid',label=linelabel)
+    
     #print( "wcols v_z")
     #print((np.array(zip(rrs_fixincPA[plotmask],v_z_prof_fixincPA[plotmask]+sv_z_prof_fixincPA[plotmask]))))
 
