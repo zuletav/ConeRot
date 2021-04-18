@@ -6,27 +6,40 @@ import os
 from optparse import OptionParser
 
 HOME=os.environ.get('HOME')
-include_path='/home/simon/common/python/include/'
-#include_path=HOME+'/common/python/conemaps-git/'
+include_path=HOME+'/common/python/include/'
 sys.path.append(include_path)
 import ConeRot.MasterDConeMaps as MasterDConeMaps
 
 
+sourcedir='hydro/12CO_dgauss_commonsigma/'
 
-#sourcedir='/strelka_ssd/simon/HD135344B/Dmoments/12CO_dgauss_contsub_restored_lS0.003_lL0.0_z/'
-sourcedir='/strelka_ssd/simon/HD135344B/Dmoments/12CO_dgauss_contsub_restored_lS0.003_lL0.0_z/'
+workdir='work_pix2_Smom8'
+workdir='work_pix2_Smom8_noMerid'
 
-workdir='work_dgauss_uvmem_restored_g_v0_Merid_noregions'
+sourcedir='/strelka_ssd/simon/C8_simus/AKIRA/hydro/13CO_sgauss_12co32_planetvortex_p05J/'
+workdir='work_13co32_p05J_sgauss'
 
-workdir='work_dgauss_uvmem_restored_g_v0_Merid_pix2'
+
+sourcedir='/strelka_ssd/simon/C8_simus/AKIRA/hydro/12CO_sgauss_12co32_planetvortex_p10J/'
+workdir='work_12co32_p10J_sgauss'
 
 
-a_min=0.17
-a_max=0.37 #0.37
-#a_max=0.5
+sourcedir='/strelka_ssd/simon/C8_simus/AKIRA/hydro/13CO_sgauss_12co32_planetvortex_p10J/'
+workdir='work_13co32_p10J_sgauss'
 
-a_min_plot=a_min
-a_max_plot=0.5
+distance=140. #pc
+
+
+#a_min=0.4
+a_min=0.3
+a_max=1.3
+
+a_min_regions=0.15
+a_max_regions=1.5
+
+a_min_plot=a_min_regions
+a_max_plot=a_max_regions
+
 ######################################################################
 
 parser = OptionParser()
@@ -37,6 +50,7 @@ parser.add_option("-M", "--MCMC", action="store_true", dest="RunMCMCmaster", def
 parser.add_option("-d", "--dry-run", action="store_false", dest="RunMaster", default=True, help="toggle dry run")
 parser.add_option("-o", "--NoVarOrient", action="store_false", dest="DoVarOrient", default=True, help="no variable PA, inc profile, use with --forceorient")
 parser.add_option("-R", "--Regions", action="store_true", dest="Regions", default=False, help="use regions")
+parser.add_option("-m", "--Merid", action="store_true", dest="DoMerid", default=False, help="use meridional flows")
 
 #parser.add_option("-q", "--quiet",
 #                  action="store_false", dest="verbose", default=True,
@@ -50,6 +64,7 @@ print("options.DoFarSideOnly:", options.DoFarSideOnly)
 print("options.RunMCMCmaster:", options.RunMCMCmaster)
 print("options.RunMaster:", options.RunMaster)
 print("options.DoVarOrient:", options.DoVarOrient)
+print("options.DoMerid:", options.DoMerid)
 
 
 ######################################################################
@@ -75,7 +90,10 @@ if options.DoVarOrient:
     PlotVarPAinc=True
     
     
-
+if not options.DoMerid:
+    workdir += '_nomerid'   
+if Regions:
+    workdir += '_Regions'
 if options.ForceOrient:
     workdir += '_ForceOrient'
 if options.DoFarSideOnly:
@@ -87,62 +105,51 @@ workdir += '/'
 
 if options.RetroGrade:
     PA=320.-180.
-    inc=(180.-40.)*np.pi/180.
+    inc=(180.-30.)*np.pi/180.
 else:
-    PA=242.9
-    inc=24.7*np.pi/180.
-    inc=20.*np.pi/180.
-    inc=15.*np.pi/180.
-    inc=16.*np.pi/180.
-
+    PA=45.+180.
+    inc=(33.)*np.pi/180.
 
     
 S=MasterDConeMaps.Setup(
-    #filename_source=sourcedir+'im_gmom_8.fits',
     filename_source=sourcedir+'im_g_v0.fits',
     #filename_source=sourcedir+'Smom_8.fits',
-    #filename_errormap=sourcedir+'im_velo_errormap.fits', #im_g_v0_errormap.fits
     filename_errormap=sourcedir+'im_g_v0_e.fits',
     workdir=workdir, 
-    DoErrorMap=True,
-    typicalerror=0.1, #  km/s
+    #DoErrorMap=False,
+    DoErrorMap=False,
+    typicalerror=0.02, #  km/s
 
-    ComputeSystVelo=False,  # best run this only once, then pass value in vsyst
-    #vsyst=7.0532376503043, # re-computed with continuum origin
-    vsyst=7.087276144556471, 
-    
+    ComputeSystVelo=True,  # best run this only once, then pass value in vsyst
+    vsyst=0.,  # 5.7454612183344285,
+    #USED VSYST= 5.76188229931048
+    #USED VSYST= 5.767168500867334
+    #Rich Teague: 5.763
+
     fieldscale=1., #1.
-    pixscale_factor=2.0,   #6.0
+    pixscale_factor=1.0,   #6.0
     unitscale=1.,
 
     PA=PA,
     inc=inc, 
-    tanpsi=0.3,
+    tanpsi=0.,
 
-    # using global PA: 312.732843
-    # using global inc: 2.330638
-    # using global tanpsi: -0.255051
-
-    rangePA=40.,
-    rangeinc=35.*np.pi/180.,
+    rangePA=50.,
+    rangeinc=15.*np.pi/180.,
     #rangeinc=0.1*np.pi/180.,
-    rangetanpsi=0.6,
+    rangetanpsi=1.,
 
-    #a_min=0.15,
-    #a_max=0.75,
-    a_min=a_min, #0.17
-    #a_max=0.37, #0.27
-    a_max=a_max, #0.27
+    a_min=a_min, 
+    a_max=a_max, 
 
     DoRegions=Regions,
-    a_min_regions=a_min,
-    #a_max_regions=0.37,
-    a_max_regions=a_max,
-    n_abins=4,# 6   #minimum 3 for overlap
+    a_min_regions=a_min_regions,
+    a_max_regions=a_max_regions,
+    n_abins=10,# 
 
     DoAccr=False,
     DoAccr_fixPAinc=False,
-    DoMerid_fixPAinc=True,
+    DoMerid_fixPAinc=options.DoMerid, 
     
     ClearWorkDir=ClearWorkDir,
     DoExec=DoExec,  # Execute the full optimization
@@ -150,16 +157,11 @@ S=MasterDConeMaps.Setup(
 
     DumpAllFitsFiles=False,
 
-    x_center=0.002, # from the continuum
-    y_center=0.017,
-    #x_center=0.0,
-    #y_center=0.0,
+    x_center=0., # from the continuum
+    y_center=0.,
 
-    #strelka10:32:55~/common/ppdisks/HD163296/kine/data_1$beam.py dgaussmoments_restored_cube_lS0.0005_lL1e-05_xwide_robust0.5/im_g_v0.fits 
-    #python ~/common/python/simon_examplescripts/beam.py    /Users/simon/common/ppdisks/HD163296/kine/data/HD163296_CO.fits
-    #0.104 x 0.095 / -80.2 
-    bmaj=0.054, # arcsec
-    bmin=0.054, # arcsec
+    bmaj=0.091, # arcsec
+    bmin=0.078, # arcsec
     DoConjGrad=True,
     DoMinuit=False,  # BROKEN 
 
@@ -167,10 +169,14 @@ S=MasterDConeMaps.Setup(
     RunMCMC=RunMCMCmaster,
     RecoverMCMC=RunMCMCmaster, # RunMCMC
     n_cores_MCMC=30, #30
-    Nit=300,
-    burn_in=150,
-    nwalkers= 20,
+    #Nit=300,
+    Nit=200,
+    #burn_in=150,
+    burn_in=100,
+    #nwalkers= 10, #leave as default
     exec_master_script=exec_master_script)
+
+
 
 S.domain=( ('PA',(S.PA-S.rangePA/2.,S.PA+S.rangePA/2.)), ('inc',(S.inc-S.rangeinc/2.,S.inc+S.rangeinc/2.)),('tanpsi',(S.tanpsi-S.rangetanpsi/2.,S.tanpsi+S.rangetanpsi/2.)))
 
@@ -180,31 +186,32 @@ if S.DoExec:
 
 SFixOrient=copy(S)
 if S.DoFixOrient:
+    SFixOrient.Nit=100
+    SFixOrient.burn_in=50
     SFixOrient.RunFixOrient(ForceGlobalOrient=options.ForceOrient, Force_allradsPA=S.PA, Force_allradsinc=S.inc)
 else:
     SFixOrient.workdir=re.sub('/$','_fixPAinc/',SFixOrient.workdir)
 
 import ConeRot.RotOrient.PlotRotorient
 
-#ConeRot.RotOrient.PlotRotorient.execfig(S.workdir)
-ConeRot.RotOrient.PlotRotorient.execfig(S.workdir,SFixOrient.filename_source, ForceGlobalOrient=options.ForceOrient, Force_allradsPA=S.PA, Force_allradsinc=S.inc,WithComparData=False,WithComparRadTWind=False,PlotVarPAinc=PlotVarPAinc)
 
+vsys=ConeRot.RotOrient.PlotRotorient.execfig(S.workdir,SFixOrient.filename_source, distance=distance, ForceGlobalOrient=options.ForceOrient, Force_allradsPA=S.PA, Force_allradsinc=S.inc, PlotVarPAinc=PlotVarPAinc, title='',alabel='')
+
+vsys=ConeRot.RotOrient.PlotRotorient.execfig(S.workdir,SFixOrient.filename_source, distance=distance, ForceGlobalOrient=options.ForceOrient, Force_allradsPA=S.PA, Force_allradsinc=S.inc, PlotVarPAinc=PlotVarPAinc, title='',alabel='',PlotVarOrient=False)
+
+SFixOrient.vsyst=vsys
 
 import ConeRot.KineSummaryCompact
 
-#KineSummaryCompact.exec_summary_allrads(SFixOrient.workdir,SFixOrient.filename_source,file_continuum='',vsyst=S.vsyst)
 
+ConeRot.KineSummaryCompact.exec_summary_allrads(SFixOrient.workdir,SFixOrient.filename_source,vsyst=SFixOrient.vsyst,UseScatter=False)
+ConeRot.KineSummaryCompact.exec_summary_allrads(SFixOrient.workdir,SFixOrient.filename_source,vsyst=SFixOrient.vsyst,UseScatter=True)
 
+#file_continuum='/home/simon/rsynccommon/ppdisks/HD163296/DSHARP_continuum/polarmaps/polarmaps_modout_default/mod_out_z_stretched.fits'
 
-file_continuum='image_out_wl880_smooth.fits'
+ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,SFixOrient.filename_source,vsyst=SFixOrient.vsyst,UseScatter=False)
 
-file_continuum='/home/simon/common/ppdisks/HD135344B/data/Cycle6/clean/tclean_HD135344Bbriggs0.0_self.fits'
-
-ConeRot.KineSummaryCompact.exec_summary_allrads(SFixOrient.workdir,SFixOrient.filename_source,file_continuum=file_continuum,vsyst=S.vsyst)
-
-
-
-ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,SFixOrient.filename_source,file_continuum=file_continuum,vsyst=S.vsyst)
+#ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,SFixOrient.filename_source,vsyst=SFixOrient.vsyst,Zoom=True)
 
 #ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,SFixOrient.filename_source,file_continuum=file_continuum,vsyst=S.vsyst,Zoom=True,side=1.2)
 #KineSummaryCompact.exec_summary_faceon(workdir,filename_source,file_continuum=file_continuum,vsyst=5.768)
