@@ -18,7 +18,7 @@ sys.path.append(include_path)
 import ImUtils.Resamp as Resamp
 import ImUtils.Cube2Im as Cube2Im
 
-def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,VisibleXaxis=False,VisibleYaxis=False,DoBeamEllipse=False,DoGreyCont=False,DoCB=False,Clevs=False,Region=False,vsyst=0.,nplotsx=1,nplotsy=1,Region_Contours=False,SymmetricRange=False,UseScatter=False,cmap='ocean_r',filename_weights='',SubtractVsyst=False,ColorBarScale=1.,cblabel='km/s',Zoom=False,side=3.5,RegionOfInterest=False,a_min=-1,a_max=-1):
+def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,VisibleXaxis=False,VisibleYaxis=False,DoBeamEllipse=False,DoGreyCont=False,DoCB=False,Clevs=False,Region=False,vsyst=0.,nplotsx=1,nplotsy=1,Region_Contours=False,SymmetricRange=False,UseScatter=False,cmap='ocean_r',filename_weights='',SubtractVsyst=False,ColorBarScale=1.,cblabel='km/s',Zoom=False,side=3.5,RegionOfInterest=False,a_min=-1,a_max=-1,FilterOutliers=True):
 
         print("vsyst",vsyst)
 
@@ -160,7 +160,10 @@ def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,Visible
 
 
         if (Clevs=='Region'): # and (not 'centered.fits' in filename_grey)):
-                subim_grey_filt=scipy.signal.medfilt(subim_grey,5)
+                if FilterOutliers:
+                        subim_grey_filt=scipy.signal.medfilt(subim_grey,3)
+                else:
+                        subim_grey_filt=subim_grey
                 range1=np.min(subim_grey_filt[np.where(subim_region > 0.99)])
                 range2=np.max(subim_grey_filt[np.where(subim_region > 0.99)])
 
@@ -461,7 +464,7 @@ def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,Visible
 
                 
 
-def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=False,file_m0=False,file_m2=False,file_continuum=False,Zoom=False,RegionOfInterest=False,side=3.5,AllRads=True,a_min=-1,a_max=-1):
+def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=False,file_m0=False,file_m2=False,file_continuum=False,Zoom=False,RegionOfInterest=False,side=3.5,AllRads=True,a_min=-1,a_max=-1,FilterOutliers=True,UseScatter=True):
 
 
         
@@ -477,10 +480,17 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
         global flog
         flog=open(workdir+inbasename+"_region_scatter_diff.txt","w+")
 
+
+        usescattag=''
+        if UseScatter:
+                usescattag='_sat'
+        
+
+        
         if AllRads:
-                fileout = workdir+'fig_'+inbasename+'_report_allrads_diff.pdf'
+                fileout = workdir+'fig_'+inbasename+'_report_allrads_diff'+usescattag+'.pdf'
         else:
-                fileout = workdir+'fig_'+inbasename+'_report_diff.pdf'
+                fileout = workdir+'fig_'+inbasename+'_report_diff'+usescattag+'.pdf'
 
         #file_continuum='/Users/simon/common/ppdisks/HD97048/data/b7_2016/continuum/mod_out.fits'
 
@@ -572,7 +582,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
         #filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers)
 
 
 
@@ -587,7 +597,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
         filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',filename_weights=filename_weights,UseScatter=True,DoCB=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',filename_weights=filename_weights,UseScatter=UseScatter,DoCB=True,vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers)
 
         if file_continuum:
                 label=r'c) 225GHz continuum'
@@ -596,7 +606,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
                 filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers)
 
 
 
@@ -637,7 +647,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
 
 
 
-def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False,file_m0=False,file_m2=False,file_continuum=False, Zoom=False,RegionOfInterest=False,side=3.5,AllRads=True,a_min=-1,a_max=-1):
+def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False,file_m0=False,file_m2=False,file_continuum=False, Zoom=False,RegionOfInterest=False,side=3.5,AllRads=True,a_min=-1,a_max=-1,FilterOutliers=True,UseScatter=True):
 
 
         
@@ -656,10 +666,15 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
         allradsstr=''
         if AllRads:
                 allradsstr='_allrads'
+
+        usescattag=''
+        if UseScatter:
+                usescattag='_sat'
+        
         if Zoom:
-                fileout = workdir+'fig_'+inbasename+'_report'+allradsstr+'_faceon_zoom.pdf'
+                fileout = workdir+'fig_'+inbasename+'_report'+allradsstr+'_faceon_zoom'+usescattag+'.pdf'
         else:
-                fileout = workdir+'fig_'+inbasename+'_report'+allradsstr+'_faceon.pdf'
+                fileout = workdir+'fig_'+inbasename+'_report'+allradsstr+'_faceon'+usescattag+'.pdf'
 
         #file_continuum='/Users/simon/common/ppdisks/HD97048/data/b7_2016/continuum/mod_out.fits'
 
@@ -761,7 +776,7 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
         #filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='RdBu_r',UseScatter=False,DoCB=True, SubtractVsyst=True,vsyst=vsyst,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers)
 
         label=r'b) $v_\circ - v^m_\circ$'
 
@@ -773,7 +788,7 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
         #filename_weights=workdir+inbasename+'_e_wcentered.fits'
         iplotpos += 1
         print("iplotpos",iplotpos)
-        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',UseScatter=True,DoCB=True,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max) # ,vsyst=vsyst)
+        (clevs, clabels)=addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=True,DoBeamEllipse=False,Clevs='Region',Region=filename_region,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=True,cmap='RdBu_r',UseScatter=UseScatter,DoCB=True,Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers) # ,vsyst=vsyst)
 
         if file_continuum:
                 label=r'c) 225GHz continuum'
@@ -782,7 +797,7 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
                 filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max) #,vsyst=vsyst)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers) #,vsyst=vsyst)
 
 
 

@@ -537,15 +537,35 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
 
             #print("v_phi_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max)",v_phi_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max))
-            axprofile.plot(rrs_ComparData,v_phi_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_\phi$ eddy')
-            axprofile.fill_between(rrs_ComparData,(v_phi_ComparData+s_v_phi_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_phi_ComparData-s_v_phi_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
 
-            maskrange=( (rrs_ComparData > a_min) & (rrs_ComparData < a_max))
-            vcomparmin=np.min((v_phi_ComparData[maskrange]-s_v_phi_ComparData_lo[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
-            vcomparmax=np.max((v_phi_ComparData[maskrange]+s_v_phi_ComparData_up[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
-            vymin=min(vymin,vcomparmin)
-            vymax=max(vymax,vcomparmax)
-            axprofile.set_ylim(vymin,vymax)
+            VKepNorm=True
+            if (VKepNorm & RadialScaling):
+                
+                v_phi_ComparData_resamp=np.interp(rrs_fixincPA,rrs_ComparData,v_phi_ComparData)
+                s_v_phi_ComparData_up_resamp=np.interp(rrs_fixincPA,rrs_ComparData,s_v_phi_ComparData_up)
+                s_v_phi_ComparData_lo_resamp=np.interp(rrs_fixincPA,rrs_ComparData,s_v_phi_ComparData_lo)
+                
+                maskrange=( (rrs_fixincPA > a_min) & (rrs_fixincPA < a_max))
+                
+                axprofile.plot(rrs_fixincPA[maskrange],(v_phi_ComparData_resamp[maskrange]-voff)/scale_radprofile,color='C1',linewidth=1.5,linestyle='solid',alpha=0.5,label=r'eddy')
+                axprofile.fill_between(rrs_fixincPA[maskrange],(v_phi_ComparData_resamp[maskrange]+s_v_phi_ComparData_up_resamp[maskrange]-voff)/scale_radprofile,(v_phi_ComparData_resamp[maskrange]-s_v_phi_ComparData_lo_resamp[maskrange]-voff)/scale_radprofile,  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
+
+                vcomparmin=np.min((v_phi_ComparData_resamp[maskrange]-s_v_phi_ComparData_lo_resamp[maskrange] -voff)/scale_radprofile)
+                vcomparmax=np.max((v_phi_ComparData_resamp[maskrange]+s_v_phi_ComparData_up_resamp[maskrange] -voff)/scale_radprofile)
+                vymin=min(vymin,vcomparmin)
+                vymax=max(vymax,vcomparmax)
+                axprofile.set_ylim(vymin,vymax)
+                
+            elif RadialScaling:
+                axprofile.plot(rrs_ComparData,v_phi_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',alpha=0.5,label=r'$v_\phi$ eddy')
+                axprofile.fill_between(rrs_ComparData,(v_phi_ComparData+s_v_phi_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_phi_ComparData-s_v_phi_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
+                
+                maskrange=( (rrs_ComparData > a_min) & (rrs_ComparData < a_max))
+                vcomparmin=np.min((v_phi_ComparData[maskrange]-s_v_phi_ComparData_lo[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
+                vcomparmax=np.max((v_phi_ComparData[maskrange]+s_v_phi_ComparData_up[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
+                vymin=min(vymin,vcomparmin)
+                vymax=max(vymax,vcomparmax)
+                axprofile.set_ylim(vymin,vymax)
 
             
         #axprofile.legend(loc='upper right')
@@ -609,7 +629,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         (vymin,vymax)=RotCurve.PlotV_z(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_z_prof_fixincPA_allrads,sv_z_prof_fixincPA_allrads,BackSide=BackSide,ContinuumGaps=rgaps,label=alabel,RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
         if WithComparData:
             # Rich Teague data
-            axprofile.plot(rrs_ComparData,v_z_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_z$ eddy')
+            axprofile.plot(rrs_ComparData,v_z_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,alpha=0.5,linestyle='solid',label=r'eddy')
             axprofile.fill_between(rrs_ComparData,(v_z_ComparData+s_v_z_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_z_ComparData-s_v_z_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
 
 
@@ -622,7 +642,6 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             
             print(">>>>> compar v_z ::",vymin,vymax)
             
-
             
             axprofile.set_ylim(vymin,vymax)
 
@@ -666,7 +685,8 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             axprofile.plot(rrs,v_z_RadTWind*np.sqrt(rrs)/np.sqrt(a_max),color='C3',linewidth=1.5,linestyle='solid',label=r'$v_z$ RT')
 
 
-        axprofile.legend(loc='lower right')
+        #axprofile.legend(loc='lower right')
+        axprofile.legend()
                 
             
         jpos += 1
@@ -682,23 +702,46 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         (vymin,vymax)=RotCurve.PlotV_R(axprofile,rrs_fixincPA_allrads,a_min,a_max,v_R_prof_fixincPA_allrads,sv_R_prof_fixincPA_allrads,ContinuumGaps=rgaps,label=alabel,RadialScaling=RadialScalingVR,VisibleXaxis=VisibleXaxis_V_R)
         if WithComparData:
             # Rich Teague data
-            axprofile.plot(rrs_ComparData,v_rad_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
-            axprofile.fill_between(rrs_ComparData,(v_rad_ComparData+s_v_rad_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_rad_ComparData-s_v_rad_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
-            
-            maskrange=( (rrs_ComparData > a_min) & (rrs_ComparData < a_max))
-            vcomparmin=np.min((v_rad_ComparData[maskrange]-s_v_rad_ComparData_lo[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
-            vcomparmax=np.max((v_rad_ComparData[maskrange]+s_v_rad_ComparData_up[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
-            vymin=min(vymin,vcomparmin)
-            vymax=max(vymax,vcomparmax)
 
-            axprofile.set_ylim(vymin,vymax)
+
+            VKepNorm=True
+            if (VKepNorm & RadialScaling):
+
+                v_rad_ComparData_resamp=np.interp(rrs_fixincPA,rrs_ComparData,v_rad_ComparData)
+                s_v_rad_ComparData_up_resamp=np.interp(rrs_fixincPA,rrs_ComparData,s_v_rad_ComparData_up)
+                s_v_rad_ComparData_lo_resamp=np.interp(rrs_fixincPA,rrs_ComparData,s_v_rad_ComparData_lo)
+                
+                maskrange=( (rrs_fixincPA > a_min) & (rrs_fixincPA < a_max))
+
+                axprofile.plot(rrs_fixincPA[maskrange],v_rad_ComparData_resamp[maskrange]/scale_radprofile,color='C1',linewidth=1.5,linestyle='solid',alpha=0.5,label=r'eddy')
+                axprofile.fill_between(rrs_fixincPA[maskrange],(v_rad_ComparData_resamp[maskrange]+s_v_rad_ComparData_up_resamp[maskrange])/scale_radprofile,(v_rad_ComparData_resamp[maskrange]-s_v_rad_ComparData_lo_resamp[maskrange])/scale_radprofile,  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
+                
+                vcomparmin=np.min((v_rad_ComparData_resamp[maskrange]-s_v_rad_ComparData_lo_resamp[maskrange])/scale_radprofile)
+                vcomparmax=np.max((v_rad_ComparData_resamp[maskrange]+s_v_rad_ComparData_up_resamp[maskrange])/scale_radprofile)
+                vymin=min(vymin,vcomparmin)
+                vymax=max(vymax,vcomparmax)
+            
+                axprofile.set_ylim(vymin,vymax)
+
+            else:
+                axprofile.plot(rrs_ComparData,v_rad_ComparData*np.sqrt(rrs_ComparData)/np.sqrt(a_max),color='C1',linewidth=1.5,linestyle='solid',label=r'$v_R$ eddy')
+                axprofile.fill_between(rrs_ComparData,(v_rad_ComparData+s_v_rad_ComparData_up)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),(v_rad_ComparData-s_v_rad_ComparData_lo)*np.sqrt(rrs_ComparData)/np.sqrt(a_max),  lw=0.1,color='C1', alpha=0.2, interpolate=True) #, step='mid'
+            
+                maskrange=( (rrs_ComparData > a_min) & (rrs_ComparData < a_max))
+                vcomparmin=np.min((v_rad_ComparData[maskrange]-s_v_rad_ComparData_lo[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
+                vcomparmax=np.max((v_rad_ComparData[maskrange]+s_v_rad_ComparData_up[maskrange])*np.sqrt(rrs_ComparData[maskrange])/np.sqrt(a_max))
+                vymin=min(vymin,vcomparmin)
+                vymax=max(vymax,vcomparmax)
+                
+                axprofile.set_ylim(vymin,vymax)
 
         if WithComparRadTWind:
             axprofile.plot(rrs,v_R_RadTWind*np.sqrt(rrs)/np.sqrt(a_max),color='C4',linewidth=1.5,linestyle='solid',label=r'$v_z$ RT')
 
 
             
-        axprofile.legend(loc='lower right')
+        #axprofile.legend(loc='lower right')
+        axprofile.legend()
         jpos += 1
     elif DoAccrAllRads_fixIncPA and Plot_vRot_VarOrient_FixIncPA:
         axprofile = fig.add_subplot(gs[jpos,0])
