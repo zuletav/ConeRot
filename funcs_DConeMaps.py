@@ -81,7 +81,7 @@ def cartesian2polar(outcoords, inputshape, origin, inc=0.):
 
 
 
-def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.):
+def conicpolar2cartesian_ellipse_reflectedazimuths(outcoords, inputshape, origin,inc=0.,tanpsi=0.):
     yindex, xindex = outcoords
     x0, y0 = origin
     nx=inputshape[0]
@@ -105,6 +105,66 @@ def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.)
         
     theta=np.arccos(costheta)
     thetaindex = (theta * float(nx) / (2. * np.pi))
+
+
+            
+    return (rindex,thetaindex)
+
+
+def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.):
+    yindex, xindex = outcoords
+    x0, y0 = origin
+    nx=inputshape[0]
+    ny=inputshape[1]
+    x = -float(xindex - x0)
+    y = float(yindex - y0)
+
+    tanpsi0=tanpsi
+
+
+    a=((np.tan(inc) * tanpsi0)**2-1.0)
+    b=-2.*x*np.sin(inc)* tanpsi0/(np.cos(inc))**2
+    c=y**2+(x**2/(np.cos(inc)**2))
+    Delta=b**2-4.*a*c
+    rho=(-b-np.sqrt(Delta))/(2.*a)
+    rindex = rho
+    if (rho == 0.):
+        costheta = 0.
+    else:
+        costheta = y / rho
+
+        
+    #sintheta=np.sqrt( 1.- costheta**2)
+    #if (x<0):
+    #    sintheta*=-1
+    
+    #xp=(rho*sintheta/np.cos(inc)) + (tanpsi0*rho  - rho*sintheta*np.tan(inc)) * np.sin(inc)
+
+    H1=tanpsi0*rho
+    num= x - H1 * np.sin(inc)
+    denom= rho * ( (1./np.cos(inc))  - np.tan(inc) * np.sin(inc))
+    sintheta= num/ denom
+    
+    theta=np.arccos(costheta)
+    
+    if sintheta<0:
+        theta = 2.*np.pi - theta
+
+
+
+    #slope=np.tan(inc)#*tanpsi0
+
+    #if (x<0.):
+    #    if (x<slope*y):
+    #        #print("theta",theta,"x",x,"y",y,"costheta",costheta)
+
+
+    #if (x<0):
+    #    #print("theta",theta,"x",x,"y",y)
+    #    theta += np.pi 
+    
+    thetaindex = (theta * float(nx) / (2. * np.pi)) 
+    #thetaindex = (theta * float(nx) / (np.pi))
 
 
             
