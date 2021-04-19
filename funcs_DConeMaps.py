@@ -163,7 +163,7 @@ def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.)
     #    #print("theta",theta,"x",x,"y",y)
     #    theta += np.pi 
     
-    thetaindex = (theta * float(nx) / (2. * np.pi)) 
+    thetaindex = (theta * float(nx-1) / (2. * np.pi)) 
     #thetaindex = (theta * float(nx) / (np.pi))
 
 

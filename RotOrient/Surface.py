@@ -139,6 +139,7 @@ def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.)
         theta = 2.*np.pi - theta
 
 
+    #theta = 2.*np.pi - theta
 
     #slope=np.tan(inc)#*tanpsi0
 
