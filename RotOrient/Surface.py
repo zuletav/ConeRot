@@ -272,13 +272,17 @@ def polartocart(im_polar,inc):
 
 
 
-def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H'):
+def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H',ForceTop=False):
 
     (rregions, psis, psi_ds, psi_us) = np.loadtxt(file_psiprofile,unpack=True)
 
-    Hs=np.fabs(rregions*np.tan(psis*np.pi/180.))
+    Hs=rregions*np.tan(psis*np.pi/180.)
     tanpsis=np.tan(psis*np.pi/180.)
     rmax0=np.max(rregions)
+
+    if (ForceTop):
+        Hs=np.fabs(Hs)
+        tanpsis=np.fabs(tanpsis)
 
     f0 = fits.open(file_canvas)
     im_canvas0 = f0[0].data
