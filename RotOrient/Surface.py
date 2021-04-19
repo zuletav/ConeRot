@@ -151,7 +151,7 @@ def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.)
     #    #print("theta",theta,"x",x,"y",y)
     #    theta += np.pi 
     
-    thetaindex = (theta * float(nx) / (2. * np.pi)) 
+    thetaindex = (theta * (float(nx)-1.) / (2. * np.pi)) 
     #thetaindex = (theta * float(nx) / (np.pi))
 
 
@@ -426,12 +426,13 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H'):
     HHs_sky_top=np.zeros(HHs.shape)
     HHs_sky_bottom=np.zeros(HHs.shape)
 
+    phis_sky_top=np.zeros(HHs.shape)
 
 
     region_domain_top_prev=np.zeros(rrs_polar.shape)
     region_domain_bottom_prev=np.zeros(rrs_polar.shape)
 
-    nmesh=50
+    nmesh=10
     rmesh = (np.arange(nmesh)/(nmesh-1))*rmax
 
     
@@ -456,7 +457,7 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H'):
 
         #plt.imshow(region_polar)
         #plt.show()
-        #phis_top=conicpolartocart(phis_polar,inc,tanpsi)
+        phis_top=conicpolartocart(phis_polar,inc,tanpsi)
         #phis_bottom=conicpolartocart(phis_polar,inc,-tanpsi)
         #Vtools.View(phis_top)
         
@@ -485,7 +486,8 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H'):
         
         mask= ( (region_domain_top >= 0.5) & (region_domain_top_prev < 0.5) )
         HHs_sky_top[mask]= HHs_sky_region_top[mask]
-
+        phis_sky_top[mask]=phis_top[mask]
+        
         #Vtools.View(HHs_sky_top)
 
         mask= ( (region_domain_bottom > 0.5) & (region_domain_bottom_prev < 0.5))
@@ -500,6 +502,7 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H'):
     rotangle= -PA
 
     HHs_sky_rot_top = ndimage.rotate(HHs_sky_top, rotangle, reshape=False)
+    phis_sky_rot_top = ndimage.rotate(phis_sky_top, rotangle, reshape=False)
     HHs_sky_rot_bottom = ndimage.rotate(HHs_sky_bottom, rotangle, reshape=False)
 
     hdutop = fits.PrimaryHDU()
@@ -507,6 +510,13 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H'):
     hdutop.data=HHs_sky_rot_top
     hdutop0=gridding(hdutop,hdr_canvas0,ReturnHDUList=True)
     fileout=fileouttag+'_top_sky.fits'
+    hdutop0.writeto(fileout, overwrite=True)
+
+    hdutop = fits.PrimaryHDU()
+    hdutop.header=hdr_canvas
+    hdutop.data=phis_sky_rot_top
+    hdutop0=gridding(hdutop,hdr_canvas0,ReturnHDUList=True)
+    fileout='phis_top_sky.fits'
     hdutop0.writeto(fileout, overwrite=True)
 
     hdubottom = fits.PrimaryHDU()
