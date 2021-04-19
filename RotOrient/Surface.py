@@ -437,7 +437,7 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H',ForceTop
     region_domain_top_prev=np.zeros(rrs_polar.shape)
     region_domain_bottom_prev=np.zeros(rrs_polar.shape)
 
-    nmesh=10
+    nmesh=50
     rmesh = (np.arange(nmesh)/(nmesh-1))*rmax
 
     
