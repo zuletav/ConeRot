@@ -499,6 +499,11 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H',ForceTop
         HHs_sky_top[mask]= HHs_sky_region_top[mask]
         phis_sky_top[mask]=phis_top[mask]
         rrs_sky_top[mask]=rrs_top[mask]
+
+        #maskfar= ( (region_domain_top >= 0.5) & (region_domain_top_prev < 0.5) & (phis_sky_top > np.pi ))
+        #HHs_sky_top[maskfar]= HHs_sky_region_top[mask]
+        #phis_sky_top[maskfar]=phis_top[mask]
+        #rrs_sky_top[maskfar]=rrs_top[mask]
         
         #Vtools.View(HHs_sky_top)
 
