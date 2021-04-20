@@ -432,6 +432,9 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H',ForceTop
     HHs_sky_bottom=np.zeros(HHs.shape)
 
     phis_sky_top=np.zeros(HHs.shape)
+    phis_sky_bottom=np.zeros(HHs.shape)
+    rrs_sky_top=np.zeros(HHs.shape)
+    rrs_sky_bottom=np.zeros(HHs.shape)
 
 
     region_domain_top_prev=np.zeros(rrs_polar.shape)
@@ -463,6 +466,9 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H',ForceTop
         #plt.imshow(region_polar)
         #plt.show()
         phis_top=conicpolartocart(phis_polar,inc,tanpsi)
+        phis_bottom=conicpolartocart(phis_polar,inc,-tanpsi)
+        rrs_top=conicpolartocart(rrs_polar,inc,tanpsi)
+        rrs_bottom=conicpolartocart(rrs_polar,inc,-tanpsi)
         #phis_bottom=conicpolartocart(phis_polar,inc,-tanpsi)
         #Vtools.View(phis_top)
         
@@ -492,11 +498,14 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H',ForceTop
         mask= ( (region_domain_top >= 0.5) & (region_domain_top_prev < 0.5) )
         HHs_sky_top[mask]= HHs_sky_region_top[mask]
         phis_sky_top[mask]=phis_top[mask]
+        rrs_sky_top[mask]=rrs_top[mask]
         
         #Vtools.View(HHs_sky_top)
 
         mask= ( (region_domain_bottom > 0.5) & (region_domain_bottom_prev < 0.5))
         HHs_sky_bottom[mask]= HHs_sky_region_bottom[mask]
+        phis_sky_bottom[mask]=phis_bottom[mask]
+        rrs_sky_bottom[mask]=rrs_bottom[mask]
 
         region_domain_top_prev=region_domain_top
         region_domain_bottom_prev=region_domain_bottom
@@ -508,27 +517,51 @@ def gen_surface(file_psiprofile,file_canvas,PA=0.,inc=0.,fileouttag='H',ForceTop
 
     HHs_sky_rot_top = ndimage.rotate(HHs_sky_top, rotangle, reshape=False)
     phis_sky_rot_top = ndimage.rotate(phis_sky_top, rotangle, reshape=False)
+    rrs_sky_rot_top = ndimage.rotate(rrs_sky_top, rotangle, reshape=False)
     HHs_sky_rot_bottom = ndimage.rotate(HHs_sky_bottom, rotangle, reshape=False)
+    phis_sky_rot_bottom = ndimage.rotate(phis_sky_bottom, rotangle, reshape=False)
+    rrs_sky_rot_bottom = ndimage.rotate(rrs_sky_bottom, rotangle, reshape=False)
 
     hdutop = fits.PrimaryHDU()
     hdutop.header=hdr_canvas
     hdutop.data=HHs_sky_rot_top
     hdutop0=gridding(hdutop,hdr_canvas0,ReturnHDUList=True)
-    fileout=fileouttag+'_top_sky.fits'
+    fileout=fileouttag+'H_top_sky.fits'
     hdutop0.writeto(fileout, overwrite=True)
 
     hdutop = fits.PrimaryHDU()
     hdutop.header=hdr_canvas
     hdutop.data=phis_sky_rot_top
     hdutop0=gridding(hdutop,hdr_canvas0,ReturnHDUList=True)
-    fileout='phis_top_sky.fits'
+    fileout=fileouttag+'phis_top_sky.fits'
+    hdutop0.writeto(fileout, overwrite=True)
+
+    hdutop = fits.PrimaryHDU()
+    hdutop.header=hdr_canvas
+    hdutop.data=rrs_sky_rot_top
+    hdutop0=gridding(hdutop,hdr_canvas0,ReturnHDUList=True)
+    fileout=fileouttag+'rrs_top_sky.fits'
     hdutop0.writeto(fileout, overwrite=True)
 
     hdubottom = fits.PrimaryHDU()
     hdubottom.header=hdr_canvas
     hdubottom.data=HHs_sky_rot_bottom
     hdubottom0=gridding(hdubottom,hdr_canvas0,ReturnHDUList=True)
-    fileout=fileouttag+'_bottom_sky.fits'
+    fileout=fileouttag+'H_bottom_sky.fits'
+    hdubottom0.writeto(fileout, overwrite=True)
+
+    hdubottom = fits.PrimaryHDU()
+    hdubottom.header=hdr_canvas
+    hdubottom.data=phis_sky_rot_bottom
+    hdubottom0=gridding(hdubottom,hdr_canvas0,ReturnHDUList=True)
+    fileout=fileouttag+'phis_bottom_sky.fits'
+    hdubottom0.writeto(fileout, overwrite=True)
+
+    hdubottom = fits.PrimaryHDU()
+    hdubottom.header=hdr_canvas
+    hdubottom.data=rrs_sky_rot_bottom
+    hdubottom0=gridding(hdubottom,hdr_canvas0,ReturnHDUList=True)
+    fileout=fileouttag+'rrs_bottom_sky.fits'
     hdubottom0.writeto(fileout, overwrite=True)
 
     ##fits.writeto(fileout,HHs_sky_rot_top, hdr_canvas, overwrite=True)
