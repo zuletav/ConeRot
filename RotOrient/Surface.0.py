@@ -225,8 +225,8 @@ def cartesian2offsetpolar(outcoords, inputshape, origin, inc=0., Hpix=0.):
 def offsetpolar2cartesian(outcoords, inputshape, origin,inc=0.,Hpix=0.):
     yindex, xindex = outcoords
     x0, y0 = origin
-    nx=inputshape[0]
-    ny=inputshape[1]
+    nx=inputshape[0]-1
+    ny=inputshape[1]-1
     x = -float(xindex - x0)
     y = float(yindex - y0)
 
@@ -245,7 +245,7 @@ def offsetpolar2cartesian(outcoords, inputshape, origin,inc=0.,Hpix=0.):
         phi = phi + 2.*np.pi
 
     phi = 2.*np.pi - phi
-    phiindex = (phi * (float(nx)-1.) / (2. * np.pi))
+    phiindex = (phi * float(nx) / (2. * np.pi))
             
     return (rindex,phiindex)
 
@@ -253,8 +253,8 @@ def offsetpolar2cartesian(outcoords, inputshape, origin,inc=0.,Hpix=0.):
 def polar2cartesian(outcoords, inputshape, origin,inc=0.):
     yindex, xindex = outcoords
     x0, y0 = origin
-    nx=inputshape[0]
-    ny=inputshape[1]
+    nx=inputshape[0]-1
+    ny=inputshape[1]-1
     x = -float(xindex - x0)
     y = float(yindex - y0)
 
@@ -270,7 +270,7 @@ def polar2cartesian(outcoords, inputshape, origin,inc=0.):
     if (theta < 0):
         theta = theta + 2.*np.pi
 
-    thetaindex = (theta * (float(nx) -1.) / (2. * np.pi))
+    thetaindex = (theta * float(nx) / (2. * np.pi))
             
     return (rindex,thetaindex)
 
@@ -404,43 +404,6 @@ def proc_1region(regionparams):
              
     return passout
 
-def load_canvas(file_canvas,zoomfactor=1.,Debug=False):
-    
-
-    f0 = fits.open(file_canvas)
-    im_canvas0 = f0[0].data
-    hdr_canvas0= f0[0].header
-
-    #Vtools.View(f0)
-
-    hdr_canvas = deepcopy(hdr_canvas0)
-    hdr_canvas['CDELT1']*=zoomfactor
-    hdr_canvas['CDELT2']*=zoomfactor
-
-
-    f1=gridding(f0,hdr_canvas,ReturnHDUList=True)
-    im_canvas = f1[0].data
-    
-
-    pixscale=hdr_canvas['CDELT2']*3600.
-    
-    (ny,nx) = im_canvas.shape 
-    x=np.arange(0,nx)
-    y=np.arange(0,ny)
-    X, Y = np.meshgrid(x, y)
-    
-    X0 = np.floor(nx/2)
-    Y0 = np.floor(ny/2)
-    dxxs = -pixscale *(X-X0)
-    dyys = pixscale *(Y-Y0)
-    rrs = np.sqrt( (dxxs)**2 + (dyys)**2)
-
-        
-    hdr_canvas['PIXSCALE'] =pixscale
-
-    return rrs,hdr_canvas,hdr_canvas0
-
-
 
 def punch_skymap(im_sky,hdr_canvas,hdr_canvas0,PA,fileouttag,fileout_basename='H_top_sky.fits'):
     
@@ -455,86 +418,93 @@ def punch_skymap(im_sky,hdr_canvas,hdr_canvas0,PA,fileouttag,fileout_basename='H
     return hdu0
 
 
-def build_faceonmaps_parametric(rrs,hdr_canvas,fileouttag='H',Debug=False,nrmesh=84,z0=2.,r0=0.5,q=1.2,r1=1.5,r2=3.):
+def gen_surface(file_canvas,file_psiprofile=False,PA=0.,inc=0.,fileouttag='H',ForceTop=False,ncores=4,Verbose=False,RunTransforms=False,nrmesh=36,z0=0.4,r0=1.,q=1.,r1=2.,r2=4,zoomfactor=1.,DoConicPolar=False,DoOffsetPolar=True):
+
+    global Debug
+    Debug=Verbose
+    global ConicPolar
+    global OffsetPolar
+    ConicPolar=DoConicPolar
+    OffsetPolar=DoOffsetPolar
+    if ConicPolar:
+        OffsetPolar=False
+
+    if file_psiprofile:
+        (rregions, psis, psi_ds, psi_us) = np.loadtxt(file_psiprofile,unpack=True)
+
+        Hs=rregions*np.tan(psis*np.pi/180.)
+        tanpsis=np.tan(psis*np.pi/180.)
+        rmax0=np.max(rregions)
+
+        if (ForceTop):
+            Hs=np.fabs(Hs)
+            tanpsis=np.fabs(tanpsis)
+
+    f0 = fits.open(file_canvas)
+    im_canvas0 = f0[0].data
+    hdr_canvas0= f0[0].header
+
+    #Vtools.View(f0)
 
 
-    HHs=z_func_gap(rrs,z0,r0,q,r1,r2)
+    hdr_canvas = deepcopy(hdr_canvas0)
+    hdr_canvas['CDELT1']*=zoomfactor
+    hdr_canvas['CDELT2']*=zoomfactor
 
-    fileout=fileouttag+'H_faceon.fits'
-    fits.writeto(fileout,HHs, hdr_canvas, overwrite=True)
+    f1=gridding(f0,hdr_canvas,ReturnHDUList=True)
+    im_canvas = f1[0].data
+    
 
-    hdu = fits.PrimaryHDU()
-    hdu.header=hdr_canvas
-    hdu.data=HHs
 
-    zero_offset=hdr_canvas['PIXSCALE']
+    #Vtools.View(im_canvas)
+    
 
+    pixscale=hdr_canvas['CDELT2']*3600.
+    
+    (ny,nx) = im_canvas.shape 
+    x=np.arange(1,nx+1)
+    y=np.arange(1,ny+1)
+    X, Y = np.meshgrid(x, y)
+    
+    X0 = np.floor(nx/2)+1
+    Y0 = np.floor(ny/2)+1
+    dxxs = -pixscale *(X-X0)
+    dyys = pixscale *(Y-Y0)
+    rrs = np.sqrt( (dxxs)**2 + (dyys)**2)
 
     rmax=np.max(rrs)
-
-
-    rmesh = zero_offset+ (np.arange(nrmesh)/(nrmesh-1))*rmax
-
-    Hmesh=z_func_gap(rmesh,z0,r0,q,r1,r2)
-
     if Debug:
         print("rmax",rmax)
-        modprof=np.zeros((len(rmesh),2))
+
+    if file_psiprofile:
         
-        modprof[:,0]=rmesh
-        modprof[:,1]=z_func_gap(rmesh,z0,r0,q,r1,r2)
+        if (zoomfactor > 1.):
+            rregions=np.append([0.],rregions)
+            rregions=np.append(rregions,[rmax/2.,rmax])    
+            Hs=np.append(0.,Hs)
+            Hs=np.append(Hs,[0.,0.])
+            tanpsis=np.append(0.,tanpsis)
+            tanpsis=np.append(tanpsis,[0.,0.])
         
-        #modprof[:,1]=z_func(rs,z0,r0,r1,q)
-        print("model H(R)")
-        Vtools.Spec([modprof])
+        else:
+            
+            rregions=np.append([0.],rregions)
+            rregions=np.append(rregions,rmax)    
+            Hs=np.append(0.,Hs)
+            Hs=np.append(Hs,0.)
+            tanpsis=np.append(0.,tanpsis)
+            tanpsis=np.append(tanpsis,0.)
 
-        #modprof[:,1]=ftanpsi(rs,z0,r0,r1,q)
-        #modprof[:,1]=ftanpsi_gap(rs,z0,r0,q,r1,r2)
-        modprof[:,1]=z_func_gap(rmesh,z0,r0,q,r1,r2)/rs
-        print("model h(R)")
-        Vtools.Spec([modprof,])
-
-        #modprof[:,1]=np.arctan(ftanpsi(rs,z0,r0,r1,q))*180./np.pi
-        modprof[:,1]=np.arctan(z_func_gap(rmesh,z0,r0,q,r1,r2)/rmesh)*180./np.pi
-        print("model psi(R)")
-        Vtools.Spec([modprof,])
-
-    return hdu,rmesh,Hmesh
+        if Debug:
+            print("rregions",rregions)
+            print("Hs",Hs)
     
 
-
-def build_faceonmaps(rrs,hdr_canvas,file_psiprofile,fileouttag='H',ForceTop=False,Verbose=False,zoomfactor=1.,FitHProfile=False,Debug=True):
-
-
-    rmax=np.max(rrs)
+        #fH = interp1d(rregions, Hs, kind='cubic')
+        #ftanpsi = interp1d(rregions, tanpsis, kind='cubic')
+        ##finvH = interp1d(Hs, rregions,  kind='cubic')
     
-    (rregions, psis, psi_ds, psi_us) = np.loadtxt(file_psiprofile,unpack=True)
-    
-    rregions=np.append([0.],rregions)
-    rregions=np.append(rregions,rmax)    
 
-    psis=np.append([0.],psis)
-    psis=np.append(psis,rmax)
-    
-    Hs=rregions*np.tan(psis*np.pi/180.)
-    tanpsis=np.tan(psis*np.pi/180.)
-    
-    if (ForceTop):
-        Hs=np.fabs(Hs)
-        tanpsis=np.fabs(tanpsis)
-
-    #Hs=np.append(0.,Hs)
-    #Hs=np.append(Hs,0.)
-    #tanpsis=np.append(0.,tanpsis)
-    #tanpsis=np.append(tanpsis,0.)
-
-    if Debug:
-        print("rregions",rregions)
-        print("Hs",Hs)
-
-
-    if FitHProfile:
-    
         popt, pcov = curve_fit(z_func, rregions, tanpsis, p0=[0.,0.5,1.,1.],bounds=[[-10.,0.,0.,0.1],[10.,10.,10.,4.]])
 
 
@@ -565,46 +535,26 @@ def build_faceonmaps(rrs,hdr_canvas,file_psiprofile,fileouttag='H',ForceTop=Fals
             Vtools.Spec([obsprof,modprof])
 
 
-        #HHs=z_func(rrs,z0,r0,r1,q)
-        #r2=4.
-        #r1=2.
+    #HHs=fH(rrs)
+    #HHs=z_func(rrs,z0,r0,r1,q)
+    #r2=4.
+    #r1=2.
     
-        HHs=z_func_gap(rrs,z0,r0,q,r1,r2)
+    HHs=z_func_gap(rrs,z0,r0,q,r1,r2)
 
-
-    else:
-        fH = interp1d(rregions, Hs, kind='nearest')
-        HHs=fH(rrs)
-
-        
-        
+    master_Hsign=np.sign(z0)
     
     fileout=fileouttag+'H_faceon.fits'
     fits.writeto(fileout,HHs, hdr_canvas, overwrite=True)
 
-    hdu = fits.PrimaryHDU()
-    hdu.header=hdr_canvas
-    hdu.data=HHs
 
-    return hdu,rregions, Hs
-
-def gen_surface(HDU_H,rmesh,Hmesh,hdr_canvas0,PA=0.,inc=0.,fileouttag='H',ncores=4,Verbose=False,RunTransforms=False,DoConicPolar=False,DoOffsetPolar=True):
-
-    global Debug
-    Debug=Verbose
-    global ConicPolar
-    global OffsetPolar
-    ConicPolar=DoConicPolar
-    OffsetPolar=DoOffsetPolar
-    if ConicPolar:
-        OffsetPolar=False
-
-
-    HHs=HDU_H.data
-    hdr_canvas=HDU_H.header
     
-    master_Hsign=np.sign(HHs.flat[np.argmax(np.fabs(HHs))])
-
+    ########################################################################
+    ## default expansion
+    #
+    #M.workdir='polarmaps_default/'  # directory for products 
+    #M.prep_files()
+    #M.polar_expansions()
 
     nphis=HHs.shape[0]
     if Debug:
@@ -629,12 +579,35 @@ def gen_surface(HDU_H,rmesh,Hmesh,hdr_canvas0,PA=0.,inc=0.,fileouttag='H',ncores
 
     rs =  3600.*(np.arange(hdrpolar['NAXIS2'])-hdrpolar['CRPIX2']+1.0)*hdrpolar['CDELT2']+hdrpolar['CRVAL2']
 
+    
+
+    if Debug and not file_psiprofile:
+        modprof=np.zeros((len(rs),2))
+
+        modprof[:,0]=rs
+        modprof[:,1]=z_func_gap(rs,z0,r0,q,r1,r2)
+
+        #modprof[:,1]=z_func(rs,z0,r0,r1,q)
+        print("model H(R)")
+        Vtools.Spec([modprof])
+
+        #modprof[:,1]=ftanpsi(rs,z0,r0,r1,q)
+        #modprof[:,1]=ftanpsi_gap(rs,z0,r0,q,r1,r2)
+        modprof[:,1]=z_func_gap(rs,z0,r0,q,r1,r2)/rs
+        print("model h(R)")
+        Vtools.Spec([modprof,])
+
+        #modprof[:,1]=np.arctan(ftanpsi(rs,z0,r0,r1,q))*180./np.pi
+        modprof[:,1]=np.arctan(z_func_gap(rs,z0,r0,q,r1,r2)/rs)*180./np.pi
+        print("model psi(R)")
+        Vtools.Spec([modprof,])
+
     rrs_polar=np.zeros(HHs_polar.shape)
 
-    
-    (ny,nx) = HHs.shape 
-    x=np.arange(0,nx)
-    y=np.arange(0,ny)
+    print("nphis",nphis,"nx",nx)
+
+    x=np.arange(1,nx+1)
+    y=np.arange(1,ny+1)
     X, Y = np.meshgrid(x, y)
     
     rrs_polar= 3600.*(Y-hdrpolar['CRPIX2']+1.0)*hdrpolar['CDELT2']+hdrpolar['CRVAL2']
@@ -646,18 +619,18 @@ def gen_surface(HDU_H,rmesh,Hmesh,hdr_canvas0,PA=0.,inc=0.,fileouttag='H',ncores
         Vtools.View(phis_polar)
 
 
-    
+    zero_offset=hdr_canvas['CDELT2']*3600.
+    rmesh = zero_offset+ (np.arange(nrmesh)/(nrmesh-1))*rmax
     tasks=[]
 
-    for iregion in list(range(len(rmesh)-1)):
+    for iregion in list(range(nrmesh-1)):
         Rmesh1=rmesh[iregion]
         Rmesh2=rmesh[iregion+1]
-        #tanpsi=z_func_gap(Rmesh1,z0,r0,q,r1,r2)/Rmesh1 DEV DEV
-        tanpsi=Hmesh[iregion]/Rmesh1
+        tanpsi=z_func_gap(Rmesh1,z0,r0,q,r1,r2)/Rmesh1
         psi_deg_mod = np.fabs(np.arctan(tanpsi)) *180. / np.pi
         inc_deg_mod = inc * 180. / np.pi
         if (inc_deg_mod > 90.):
-            inc_deg_mod=180.-inc_deg_mod
+            inc_deg_mod=180.-inc_deg
         if Debug:
             print("Rmesh1: ", Rmesh1, "Rmesh2: ",Rmesh2)
             print("tanpsi",tanpsi,"psi_deg_mod",psi_deg_mod,"inc_deg_mod",inc_deg_mod)
@@ -665,7 +638,7 @@ def gen_surface(HDU_H,rmesh,Hmesh,hdr_canvas0,PA=0.,inc=0.,fileouttag='H',ncores
             print("psi_deg_mod",psi_deg_mod,"inc_deg_mod",inc_deg_mod)
             sys.exit("opening angle too steep, no solutions via single-valued conic transforms -> develop bi-valued transforms")
 
-        regionparams={'Rmesh1':Rmesh1,'Rmesh2':Rmesh2,'inc':inc,'tanpsi':tanpsi,'rrs_polar':rrs_polar,'HHs_polar':HHs_polar,'phis_polar':phis_polar,'pixscale':hdr_canvas['PIXSCALE']}
+        regionparams={'Rmesh1':Rmesh1,'Rmesh2':Rmesh2,'inc':inc,'tanpsi':tanpsi,'rrs_polar':rrs_polar,'HHs_polar':HHs_polar,'phis_polar':phis_polar,'pixscale':pixscale}
         tasks.append(regionparams)
 
     domain_polar=np.zeros(rrs_polar.shape)
@@ -724,7 +697,21 @@ def gen_surface(HDU_H,rmesh,Hmesh,hdr_canvas0,PA=0.,inc=0.,fileouttag='H',ncores
         phis_sky_top[maskF]=phis_sky_domain_top[maskF]
         rrs_sky_top[maskF]=rrs_sky_domain_top[maskF]
         
+        if ((Rmesh1 > r1) & Debug):
+            print("r2max",r2max)
+            Vtools.View(phis_sky_domain_top)
+            print("Mask N")
+            arrmaskN=np.zeros(rrs_sky_top.shape)
+            arrmaskN[maskN]=1.
+            Vtools.View(arrmaskN)
+            print("Mask F")
+            arrmaskF=np.zeros(rrs_sky_top.shape)
+            arrmaskF[maskF]=1.
+            Vtools.View(arrmaskF)
+            print("combine H")
+            Vtools.View(HHs_sky_top)
                
+
         maskN=( ((rrs_sky_domain_bottom >= Rmesh1) | (-master_Hsign*np.sign(HHs_sky_bottom) <= 0. ) ) &  (rrs_sky_domain_bottom < Rmesh2) & (phis_sky_domain_bottom > np.pi) )
         
 
