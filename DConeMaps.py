@@ -96,7 +96,8 @@ class Model():
                  bmin=0.07, # arcsec
                  Ncorr=1.,  # dimensionless
                  DoFarSideOnly=False,
-                 TriangleFile='triangle.png'):
+                 TriangleFile='triangle.png',
+                 Diskgeometry={}):
 
         
 

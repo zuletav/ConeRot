@@ -490,7 +490,7 @@ def build_faceonmaps_parametric(rrs,hdr_canvas,fileouttag='H',Debug=False,nrmesh
 
         #modprof[:,1]=ftanpsi(rs,z0,r0,r1,q)
         #modprof[:,1]=ftanpsi_gap(rs,z0,r0,q,r1,r2)
-        modprof[:,1]=z_func_gap(rmesh,z0,r0,q,r1,r2)/rs
+        modprof[:,1]=z_func_gap(rmesh,z0,r0,q,r1,r2)/rmesh
         print("model h(R)")
         Vtools.Spec([modprof,])
 
@@ -705,9 +705,6 @@ def gen_surface(HDU_H,rmesh,Hmesh,hdr_canvas0,PA=0.,inc=0.,fileouttag='H',ncores
         tanpsi=tasks[iregion]['tanpsi']
         psi_deg = np.arctan(tanpsi) *180. / np.pi
         
-        if Debug:
-            print("region tanpsi",tanpsi,"psi_deg",psi_deg,"inc_deg",inc_deg)
-            
 
         maskN=( ((rrs_sky_domain_top >= Rmesh1) | (master_Hsign*np.sign(HHs_sky_top) <= 0. ) ) &  (rrs_sky_domain_top < Rmesh2) & (phis_sky_domain_top > np.pi) )
 
@@ -738,6 +735,19 @@ def gen_surface(HDU_H,rmesh,Hmesh,hdr_canvas0,PA=0.,inc=0.,fileouttag='H',ncores
         phis_sky_bottom[maskF]=phis_sky_domain_bottom[maskF]
         rrs_sky_bottom[maskF]=rrs_sky_domain_bottom[maskF]
  
+        if Debug:
+            print("region tanpsi",tanpsi,"psi_deg",psi_deg,"inc_deg",inc_deg)
+            print("Mask N")
+            arrmaskN=np.zeros(rrs_sky_top.shape)
+            arrmaskN[maskN]=1.
+            Vtools.View(arrmaskN)
+            print("Mask F")
+            arrmaskF=np.zeros(rrs_sky_top.shape)
+            arrmaskF[maskF]=1.
+            Vtools.View(arrmaskF)
+            print("combine H")
+            Vtools.View(HHs_sky_top)
+
 
         
     hdu_H_top_sky=punch_skymap(HHs_sky_top,hdr_canvas,hdr_canvas0,PA,fileouttag,fileout_basename='H_top_sky.fits')
