@@ -126,19 +126,17 @@ def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.)
     b=-2.*x*np.sin(inc)* tanpsi0/(np.cos(inc))**2
     c=y**2+(x**2/(np.cos(inc)**2))
     Delta=b**2-4.*a*c
-    rho=(-b-np.sqrt(Delta))/(2.*a)
+    rho_m=(-b-np.sqrt(Delta))/(2.*a)
+    rho_p=(-b+np.sqrt(Delta))/(2.*a)
+    if (rho_p > 0.):
+        print("rho_p > 0",rho_p, rho_m,x,y,inc*180./np.pi,tanpsi,np.arctan(tanpsi)*180./np.pi)
+
+    rho=rho_m
     rindex = rho
     if (rho == 0.):
         costheta = 0.
     else:
         costheta = y / rho
-
-        
-    #sintheta=np.sqrt( 1.- costheta**2)
-    #if (x<0):
-    #    sintheta*=-1
-    
-    #xp=(rho*sintheta/np.cos(inc)) + (tanpsi0*rho  - rho*sintheta*np.tan(inc)) * np.sin(inc)
 
     H1=tanpsi0*rho
     num= x - H1 * np.sin(inc)
@@ -151,31 +149,78 @@ def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.)
         theta = 2.*np.pi - theta
 
 
-
-    #slope=np.tan(inc)#*tanpsi0
-
-    #if (x<0.):
-    #    if (x<slope*y):
-    #        #print("theta",theta,"x",x,"y",y,"costheta",costheta)
-
-
-    #if (x<0):
-    #    #print("theta",theta,"x",x,"y",y)
-    #    theta += np.pi 
     
-    thetaindex = (theta * float(nx-1) / (2. * np.pi)) 
-    #thetaindex = (theta * float(nx) / (np.pi))
+    thetaindex = (theta * (float(nx)-1.) / (2. * np.pi)) 
 
 
             
     return (rindex,thetaindex)
 
 
+#def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.):
+#    yindex, xindex = outcoords
+#    x0, y0 = origin
+#    nx=inputshape[0]
+#    ny=inputshape[1]
+#    x = -float(xindex - x0)
+#    y = float(yindex - y0)
+#
+#    tanpsi0=tanpsi
+#
+#
+#    a=((np.tan(inc) * tanpsi0)**2-1.0)
+#    b=-2.*x*np.sin(inc)* tanpsi0/(np.cos(inc))**2
+#    c=y**2+(x**2/(np.cos(inc)**2))
+#    Delta=b**2-4.*a*c
+#    rho=(-b-np.sqrt(Delta))/(2.*a)
+#    rindex = rho
+#    if (rho == 0.):
+#        costheta = 0.
+#    else:
+#        costheta = y / rho
+#
+#        
+#    #sintheta=np.sqrt( 1.- costheta**2)
+#    #if (x<0):
+#    #    sintheta*=-1
+#    
+#    #xp=(rho*sintheta/np.cos(inc)) + (tanpsi0*rho  - rho*sintheta*np.tan(inc)) * np.sin(inc)
+#
+#    H1=tanpsi0*rho
+#    num= x - H1 * np.sin(inc)
+#    denom= rho * ( (1./np.cos(inc))  - np.tan(inc) * np.sin(inc))
+#    sintheta= num/ denom
+#    
+#    theta=np.arccos(costheta)
+#    
+#    if sintheta<0:
+#        theta = 2.*np.pi - theta
+#
+#
+#
+#    #slope=np.tan(inc)#*tanpsi0
+#
+#    #if (x<0.):
+#    #    if (x<slope*y):
+#    #        #print("theta",theta,"x",x,"y",y,"costheta",costheta)
+#
+#
+#    #if (x<0):
+#    #    #print("theta",theta,"x",x,"y",y)
+#    #    theta += np.pi 
+#    
+#    thetaindex = (theta * float(nx-1) / (2. * np.pi)) 
+#    #thetaindex = (theta * float(nx) / (np.pi))
+#
+#
+#            
+#    return (rindex,thetaindex)
+
 def polar2cartesian(outcoords, inputshape, origin,inc=0.):
     yindex, xindex = outcoords
     x0, y0 = origin
-    nx=inputshape[0]-1
-    ny=inputshape[1]-1
+    nx=inputshape[0]
+    ny=inputshape[1]
     x = -float(xindex - x0)
     y = float(yindex - y0)
 
@@ -191,9 +236,34 @@ def polar2cartesian(outcoords, inputshape, origin,inc=0.):
     if (theta < 0):
         theta = theta + 2.*np.pi
 
-    thetaindex = (theta * float(nx) / (2. * np.pi))
+    thetaindex = (theta * (float(nx) -1.) / (2. * np.pi))
             
     return (rindex,thetaindex)
+
+#
+#def polar2cartesian(outcoords, inputshape, origin,inc=0.):
+#    yindex, xindex = outcoords
+#    x0, y0 = origin
+#    nx=inputshape[0]-1
+#    ny=inputshape[1]-1
+#    x = -float(xindex - x0)
+#    y = float(yindex - y0)
+#
+#    rho=np.sqrt((x**2/(np.cos(inc)**2))+y**2)
+#    rindex = rho
+#    if (rho == 0.):
+#        costheta = 0.
+#    else:
+#        costheta = y / rho
+#
+#    # theta=np.arccos(costheta)
+#    theta = np.arctan2((-x/np.cos(inc)), y) 
+#    if (theta < 0):
+#        theta = theta + 2.*np.pi
+#
+#    thetaindex = (theta * float(nx) / (2. * np.pi))
+#            
+#    return (rindex,thetaindex)
 
 
 
@@ -1234,6 +1304,26 @@ def exec_conicpolar_expansions(M):
 
         start_time=time.time()
 
+
+        #(ny,nx) = im_polar.shape 
+        #x=np.arange(0,nx)
+        #y=np.arange(0,ny)
+        #X, Y = np.meshgrid(x, y)
+        #rrs_polar= 3600.*(Y-hdrpolar['CRPIX2']+1.0)*hdrpolar['CDELT2']+hdrpolar['CRVAL2']
+        #phis_polar= (X-hdrpolar['CRPIX1']+1.0)*hdrpolar['CDELT1']+hdrpolar['CRVAL1']
+        #HHs_polar = rrs_polar * tanpsi 
+        #phis_sky_domain_top=conicpolartocart(phis_polar,inc,tanpsi)
+        #rrs_sky_domain_top=conicpolartocart(rrs_polar,inc,tanpsi)
+        #HHs_sky_domain_top=conicpolartocart(HHs_polar,inc,tanpsi)
+        #phis_sky_domain_top_drot = ndimage.rotate(phis_sky_domain_top, -rotangle, reshape=False,order=0)
+        #rrs_sky_domain_top_drot = ndimage.rotate(rrs_sky_domain_top, -rotangle, reshape=False,order=0)
+        #HHs_domain_top_drot = ndimage.rotate(HHs_sky_domain_top, -rotangle, reshape=False,order=0)
+        #M.diskgeometry={
+        #    'HHs_sky_domain_top':HHs_sky_domain_top_drot,
+        #    'rrs_sky_domain_top':rrs_sky_domain_top_drot,
+        #    'phis_sky_domain_top':phis_sky_domain_top_drot}
+
+        
         imazim=conicpolartocart(im_polar_av,inc,tanpsi)
 
         faceoninc=np.pi

@@ -595,12 +595,17 @@ def exec_Regions(M,OptimM):
         cube_resamp_faceon[iregion,:,:] = aregionoutput[9]
         cube_regions_faceon[iregion,:,:] = aregionoutput[10]
 
+        #diskgeometry=aregionoutput[11]
+        #HHs_sky_domain_top=diskgeometry['HHs_sky_domain_top']
+        #rrs_sky_domain_top=diskgeometry['rrs_sky_domain_top']
+        #phis_sky_domain_top=diskgeometry['phis_sky_domain_top']
+
+
+
+
+        
         M.fout.write(logstring)
 
-        if M.DoDCone:
-            cube_mumap[iregion,:,:] = aregionoutput[11]
-            cube_imDConemoddrot[iregion,:,:] = aregionoutput[12]
-            cube_diffimDConemoddrot[iregion,:,:] = aregionoutput[13]
 
         rrs=radialprofile[0]
         v_Phi_prof=radialprofile[1]
