@@ -332,12 +332,13 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             print("PAs",PAs)
 
             (ymin, ymax) = Orient.PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allradsinc,incerrors, psis, allradspsi, psierrors)
-            
+
+            DoAUBar=False
             if DoAUBar:
                 barlength=10. / distance
                 xxs=[a_max-(a_max-a_min)*0.05, a_max-(a_max-a_min)*0.05-barlength]
-                yys=[ymin_fixincPA+(ymax_fixincPA-ymin_fixincPA)*0.08,ymin_fixincPA+(ymax_fixincPA-ymin_fixincPA)*0.08]
-                axprofile.text(xx[0],yys[0]+(ymax_fixincPA-ymin_fixincPA)*0.03,'10 au')
+                yys=[ymin+(ymax-ymin)*0.08,ymin+(ymax-ymin)*0.08]
+                axprofile.text(xxs[0],yys[0]+(ymax-ymin)*0.03,'10 au')
                 axprofile.plot(xxs,yys,color='C5')
 
             

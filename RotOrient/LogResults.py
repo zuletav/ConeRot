@@ -149,6 +149,25 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
     
         
         for aline in log_output:
+            if Init:
+                #PA= 324.21 inc= 41.47 tanpsi= 0.0 Input systemic velocity:5.712058
+                matches= re.search("^PA= (.*) inc= (.*) tanpsi= (.*)\s(.*)$",aline)
+                initPA=float(matches.group(1))
+                initinc=float(matches.group(2))
+                Init=False
+                vsystpart=matches.group(3)
+                matches= re.search("^.*velocity:(.*)$",vsystpart)
+                vsysstring=matches.group(1)
+                if "+-" in vsysstring:
+                    matches= re.search("(.*)\s\+-\s(.*)$",vsysstring)
+                    vsys=float(matches.group(1))
+                else:
+                    vsys=float(vsysstring)
+                
+                #"Calculated systemic velocity:%.6f +- %.6f \n"
+                #"Input systemic velocity:%.6f\n"
+
+
             if AllRads:
                 matches = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*) $",aline)
                 allradsPA=float(matches.group(1))
@@ -161,6 +180,8 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
                 allradsincMCMC=float(matches.group(2))*180./np.pi
                 allradstanpsiMCMC=float(matches.group(3))
                 AllRadsMCMC=False
+            if "Init" in aline:
+                Init=True
             if "Global" in aline:
                 AllRads=True
             if "Global MCMC" in aline:
@@ -264,11 +285,11 @@ def load(workdir,FixPAInc=False,RunMCMC=False):
             allradsincMCMC= inc_MCMC[0]  * 180. / np.pi
             allradsPAMCMC= PA_MCMC[0]
             
-            return (RunMCMC, [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, PAs_MCMC, tanpsis_MCMC, incs_MCMC, allradsPAMCMC, allradsincMCMC,allradspsiMCMC])
+            return (RunMCMC, [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, PAs_MCMC, tanpsis_MCMC, incs_MCMC, allradsPAMCMC, allradsincMCMC,allradspsiMCMC,vsys])
 
 
             
             #return (RunMCMC, [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, PAs_MCMC, tanpsis_MCMC, incs_MCMC, PA_MCMC[0], inc_MCMC[0],tanpsi_MCMC[0]])
         else:
-            return (RunMCMC, [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi] )
+            return (RunMCMC, [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi,vsys] )
 
