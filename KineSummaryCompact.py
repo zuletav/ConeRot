@@ -289,10 +289,10 @@ def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,Visible
         if RegionOfInterest:
                 from matplotlib.patches import Ellipse
                 [x_planet,y_planet] = RegionOfInterest 
-                e = Ellipse(xy=[x_planet,y_planet], width=1.0, height=1.0, angle=0.,color='green',fill=False)
+                e = Ellipse(xy=[x_planet,y_planet], width=0.32, height=0.32, angle=0.,color='yellow',fill=False,lw=1.)
                 e.set_clip_box(ax.bbox)
-                e.set_facecolor('green')
-                e.set_alpha(0.5)
+                e.set_facecolor('yellow')
+                e.set_alpha(0.7)
                 ax.add_artist(e)
 
         if (DoCB):
@@ -397,7 +397,7 @@ def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,Visible
 
                 if ('continuum' in filename_contours):
                         levels = np.array([0.2,0.4,0.6,0.8,0.9]) * np.amax(subim_cont)
-                        levels = np.array([0.1]) * np.amax(subim_cont)
+                        levels = np.array([0.2]) * np.amax(subim_cont)
                         print( "continuum levels",levels)
 
 
@@ -417,7 +417,7 @@ def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,Visible
                 #print( "linewidths")
 
                 alphas=np.ones(len(levels))*0.5
-                linewidths=np.ones(len(levels))*0.5
+                linewidths=np.ones(len(levels))*2.
 
                 levels_list = levels.tolist()        
                 for ilevel in range(len(levels)):
@@ -794,10 +794,10 @@ def exec_summary_faceon(workdir,filename_source,vsyst=0.,basename_errormap=False
                 label=r'c) 225GHz continuum'
 
                 filename_grey=workdir+inbasename+'_subim_continuum_faceon.fits'
-                filename_contours=False
+                #filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers) #,vsyst=vsyst)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=True,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers) #,vsyst=vsyst)
 
 
 
