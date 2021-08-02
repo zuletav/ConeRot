@@ -6,10 +6,11 @@ def PlotOrientProfile(axprofile,rregions, PAs, allradsPA, PAerrors, incs, allrad
 
     dPAs=PAs-allradsPA
     dincs=incs-allradsinc
-    #print( "dPAs",dPAs)
-    #print( "allradsPA",allradsPA)
-    #print( "PAs",PAs)
-    #print( "dincs",dincs)
+    print( "dPAs",dPAs)
+    print( "allradsPA",allradsPA)
+    print( "PAs",PAs)
+    print( "dincs",dincs)
+    print( "allradsinc",allradsinc)
     
     if (allradspsi < 0):
         dpsis=-psis+allradspsi

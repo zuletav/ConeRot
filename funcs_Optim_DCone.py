@@ -176,6 +176,12 @@ def exec_ConjGrad_1region(M,OptimM):
     bnds = list(map( (lambda x: x[1]),M.domain))
     nvar=len(list(names))
     sample_theta=list(range(nvar))
+
+    if M.InheritGlobalInit:
+        M.PA=M.PA0
+        M.inc=M.inc0
+        M.tanpsi=M.tanpsi0
+    
     for iparam in list(range(nvar)):
         sample_theta[iparam]=getattr(M,names[iparam])
 
@@ -185,7 +191,6 @@ def exec_ConjGrad_1region(M,OptimM):
     M.Verbose=False
     M.prep_files()
     M.grid_4center()
-
 
     if M.DoMinuit:
         (result_ml,errors_ml)=run_Minuit(M,OptimM,x,bnds,names)
@@ -239,6 +244,8 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
     #pos = [result_ml + 1e-1*np.random.randn(ndim) for i in list(range(nwalkers))]
     
     ranges = list(map( (lambda x: x[1][1]-x[1][0]),M.domain))
+    lowerlimits = list(map( (lambda x: x[1][0]),M.domain))
+    upperlimits = list(map( (lambda x: x[1][1]),M.domain))
         
     allowed_ranges=np.array(ranges)
     print("allowed_ranges ",allowed_ranges)
@@ -254,7 +261,21 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
     for i in list(range(nwalkers)):
         if (np.any(allowed_ranges < 0.)):
             sys.exit("wrong order of bounds in domains")
-        awalkerinit=result_ml+(1e-1*np.random.randn(ndim)*allowed_ranges)
+        if M.BlindMCMC:
+            awalkerinit=((np.random.random(ndim))*allowed_ranges)+lowerlimits
+            if np.any(awalkerinit < lowerlimits):
+                sys.exit("BUG init MCMC lowerlimits")
+            if np.any(awalkerinit > upperlimits) :
+                sys.exit("BUG init MCMC uplimits")
+        else:
+            awalkerinit=result_ml+(1e-3*np.random.randn(ndim)*allowed_ranges)
+            if np.any(awalkerinit < lowerlimits):
+                awalkerinit[(awalkerinit < lowerlimits)]= lowerlimits[ (awalkerinit < lowerlimits)]
+
+            if np.any(awalkerinit > upperlimits):
+                awalkerinit[(awalkerinit > upperlimits)]= upperlimits[ (awalkerinit > uppperlimits)]
+            
+                
         pos.append(awalkerinit)
 
     print("init for emcee :", result_ml)

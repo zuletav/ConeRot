@@ -110,9 +110,16 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if (fileout_fig == 'default'):
         if PlotVarOrient:
-            fileouttag=workdir_fixincPA+'fig_rotorient_surfandmid_linear_full'
+            if DoFixIncPA:
+                fileouttag=workdir_fixincPA+'fig_rotorient_surfandmid_linear_full'
+            else:
+                fileouttag=workdir+'fig_rotorient_surfandmid_linear_full'
         else:
-            fileouttag=workdir_fixincPA+'fig_rot_surfandmid_linear_full'
+            if DoFixIncPA:
+                fileouttag=workdir_fixincPA+'fig_rot_surfandmid_linear_full'
+            else:
+                fileouttag=workdir+'fig_rot_surfandmid_linear_full'
+                
         if DoAUBar:
             fileouttag+='_wAUbar'
         if RadialScaling:
@@ -144,7 +151,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         else:
             (rrs, v_Phi_prof, sv_Phi_prof) = np.loadtxt(file_profile,unpack=True)
 
-    DoMeridAllRads=False
+    DoMeridAllRads=False  # averaged over regions
     DoAccrAllRads=False
     if os.path.isfile(file_profile_allrads):
 
@@ -154,7 +161,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             if (len(allprofiles) > 5):
                 (rrs_allrads, v_Phi_prof_allrads, sv_Phi_prof_allrads, v_R_prof_allrads, sv_R_prof_allrads, v_z_prof_allrads, sv_z_prof_allrads) = allprofiles_allrads # np.loadtxt(file_profile,unpack=True)
                 DoMeridAllRads=True
-                print("WARNING: found DoMerid optimization with variable PA and inc, could be degenerate")
+                print("WARNING: found DoMerid optimization with variable PA and inc, could be degenerate - AllRads")
             elif (len(allprofiles_allrads) > 3):
                 (rrs_allrads, v_Phi_prof_allrads, sv_Phi_prof_allrads, v_R_prof_allrads, sv_R_prof_allrads) = allprofiles_allrads
                 DoAccrAllRads=True
@@ -244,7 +251,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     if Plot_vRot_VarOrient_FixIncPA:
         nplotsy+=1
 
-
+    print("Plot_vRot_VarOrient",Plot_vRot_VarOrient)
     print("nplotsy = ",nplotsy)    
     figysize=nplotsy*4*7/9.
     figxsize=7.
@@ -342,18 +349,18 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
                 axprofile.plot(xxs,yys,color='C5')
 
             
-            save_prof = np.zeros((len(rregions),6))
+            save_prof = np.zeros((len(rregions),10))
             save_prof[:,0] = rregions
             save_prof[:,1] = PAs
             save_prof[:,2] = PAerrors[0,:]
-            save_prof[:,2] = PAerrors[1,:]
-            save_prof[:,3] = incs
-            save_prof[:,3] = incerrors[0,:]
-            save_prof[:,3] = incerrors[1,:]
-            save_prof[:,4] = psis
-            save_prof[:,5] = psierrors[0,:]
-            save_prof[:,5] = psierrors[1,:]
-            fileout_orientprofile=workdir_fixincPA+'orient_profile.dat'
+            save_prof[:,3] = PAerrors[1,:]
+            save_prof[:,4] = incs
+            save_prof[:,5] = incerrors[0,:]
+            save_prof[:,6] = incerrors[1,:]
+            save_prof[:,7] = psis
+            save_prof[:,8] = psierrors[0,:]
+            save_prof[:,9] = psierrors[1,:]
+            fileout_orientprofile=workdir+'orient_profile.dat'
             np.savetxt(fileout_orientprofile, save_prof)   # x,y,z equal sized 1D arrays
 
             
@@ -448,7 +455,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             ymin=ymin_fixincPA
             ymax=ymax_fixincPA
 
-        else:
+        elif DoFixIncPA:
 
             ymin=min(ymin,ymin_fixincPA)
             ymax=max(ymax,ymax_fixincPA)
@@ -479,9 +486,13 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     cosi=np.fabs(np.cos(allradsinc*np.pi/180.))
 
     BackSide=False
-    if (allradspsi_fixincPA < 0.):
-        BackSide=True
-
+    if DoFixIncPA:
+        if (allradspsi_fixincPA < 0.):
+            BackSide=True
+    else:
+        if (allradspsi < 0.):
+            BackSide=True
+            
     ######################################################################
     ## Correct v_phi for height over midplane 
 
@@ -506,8 +517,12 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
     if Plot_vRot_Global:
         axprofile = fig.add_subplot(gs[jpos,0])
         #RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof,sv_Phi_prof,v_Phi_prof_mid,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'global')
-        (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'',RadialScaling=RadialScaling,title=title,MidPlaneExtrapol=MidPlaneExtrapol)
-        jpos+=1
+        if DoFixIncPA:
+            (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs_fixincPA,a_min,a_max,v_Phi_prof_fixincPA,sv_Phi_prof_fixincPA,v_Phi_prof_mid_fixincPA,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'',RadialScaling=RadialScaling,title=title,MidPlaneExtrapol=MidPlaneExtrapol)
+        else:
+            (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs,a_min,a_max,v_Phi_prof,sv_Phi_prof,v_Phi_prof_mid,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'',RadialScaling=RadialScaling,title=title,MidPlaneExtrapol=MidPlaneExtrapol)
+
+    jpos+=1
 
 
     if DoFixIncPA and XCheckFixIncPA:
@@ -576,11 +591,20 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
 
     if (DoMerid and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])
-        RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'global',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
+        if DoFixIncPA:
+            RotCurve.PlotV_z(axprofile,rrs_fixincPA,a_min,a_max,v_z_prof_fixincPA,sv_z_prof_fixincPA,BackSide=BackSide,ContinuumGaps=rgaps,label=r'global',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
+        else:
+            RotCurve.PlotV_z(axprofile,rrs,a_min,a_max,v_z_prof,sv_z_prof,BackSide=BackSide,ContinuumGaps=rgaps,label=r'global',RadialScaling=False,VisibleXaxis=VisibleXaxis_V_z)
+            
+
         jpos+=1
         axprofile = fig.add_subplot(gs[jpos,0])
         RadialScalingVR=scale_radprofile
-        RotCurve.PlotV_R(axprofile,rrs_fixincPA,a_min,a_max,v_R_prof_fixincPA,sv_R_prof_fixincPA,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScalingVR)
+        if DoFixIncPA:
+            RotCurve.PlotV_R(axprofile,rrs,a_min,a_max,v_R_prof,sv_R_prof,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScalingVR)
+        else:
+            RotCurve.PlotV_R(axprofile,rrs,a_min,a_max,v_R_prof,sv_R_prof,ContinuumGaps=rgaps,label=r'global',VisibleXaxis=VisibleXaxis_V_R,RadialScaling=RadialScalingVR)
+
         jpos+=1
     elif (DoAccr and Plot_vRot_Global):
         axprofile = fig.add_subplot(gs[jpos,0])

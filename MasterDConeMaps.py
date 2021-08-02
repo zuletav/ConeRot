@@ -36,6 +36,7 @@ class Setup():
                  a_min=1.0,
                  a_max=2.0,
                  DoRegions=False,
+                 InheritGlobalInit=False, # to force same initial conditions for conjgrad, in all regions
                  a_min_regions=1.0,
                  a_max_regions=2.0,
                  n_abins=10,
@@ -58,6 +59,7 @@ class Setup():
                  n_cores_MCMC=10,
                  Nit=140,
                  burn_in=70,
+                 BlindMCMC=False, # if Falses uses conjgrad optim for init
                  nwalkers=-1,  # <= 0 value will use defaults
                  domain=(),
                  RA=False,
@@ -78,7 +80,13 @@ class Setup():
             setattr(self,a_attribute,initlocals[a_attribute])
             passargs['a_attribute']=initlocals[a_attribute]
 
+
+        self.PA0=self.PA
+        self.inc0=self.inc
+        self.tanpsi0=self.tanpsi
         self.n_cores_regions=self.n_abins-1 # -1
+
+        
 
     def Run(self):
 
@@ -158,7 +166,7 @@ class Setup():
         nparams=len(self.domain)
         print("nparams",nparams)
         if (self.nwalkers <= 0):
-            self.nwalkers=int(7*nparams)
+            self.nwalkers=int(10*nparams)
         
         if (self.RunMCMC and  (os.path.isdir(self.workdir))):
             OptimM=Optim_DCone.OptimModel(M,RunMCMC=True,Nit=self.Nit,nwalkers=self.nwalkers,n_cores_MCMC=self.n_cores_MCMC,burn_in=self.burn_in)

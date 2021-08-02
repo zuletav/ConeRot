@@ -58,6 +58,7 @@ class Model():
                  DoDCone=False,
                  domain=(),
                  RunMCMC=False,
+                 BlindMCMC=False,
                  Hdu=False,
                  Hduw=False,
                  Hducentered=False,
@@ -74,6 +75,10 @@ class Model():
                  DoConjGrad=False,
                  DoMinuit=False,
                  ClearWorkDir=False,
+                 InheritGlobalInit=False, # to force same initial conditions for all regions
+                 PA0=0.,
+                 inc0=10.,
+                 tanpsi0=0.1,
                  a_min_regions=0.2,
                  a_max_regions=0.3,
                  n_abins=12,

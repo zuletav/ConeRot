@@ -53,6 +53,7 @@ class OptimModel():
                  nwalkers=1,
                  burn_in=50,
                  n_cores_MCMC=1,
+                 BlindMCMC=False,
                  #a_min_regions=0.2,
                  #a_max_regions=0.3,
                  #n_abins=12,

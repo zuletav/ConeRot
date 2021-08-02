@@ -414,14 +414,13 @@ def exec_prep_files(M):
     hdu[0].data=im1
     
     hduw=False
-    
     if (M.DoErrorMap):
         hduerr = pf.open(M.filename_errormap)
         hdrerr = hduerr[0].header
         if (hdrerr['NAXIS'] > 2):
             hduerr=cube2im(M.filename_errormap,False)
 
-
+        
         imerr1=hduerr[0].data
         imerr1=imerr1*M.unitscale
 
@@ -537,7 +536,7 @@ def exec_grid_4center(M):
     hdr2['CDELT1']=M.pixscale_factor*hdr2['CDELT1']
     hdr2['CDELT2']=M.pixscale_factor*hdr2['CDELT2']
 
-        
+
     resamp=gridding(hdu,hdr2, fullWCS=False)
     resamp=np.nan_to_num(resamp)
 
@@ -553,7 +552,8 @@ def exec_grid_4center(M):
     hducentered.header=hdr2
 
     hduwcentered=False
-    
+
+
     if (M.DoErrorMap):
             resampw=gridding(hduw,hdr2, fullWCS=False)
             resampw=np.nan_to_num(resampw)
