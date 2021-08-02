@@ -269,12 +269,30 @@ def exec_emcee(M,result_ml,RunMCMC,OptimM):
                 sys.exit("BUG init MCMC uplimits")
         else:
             awalkerinit=result_ml+(1e-3*np.random.randn(ndim)*allowed_ranges)
-            if np.any(awalkerinit < lowerlimits):
-                awalkerinit[(awalkerinit < lowerlimits)]= lowerlimits[ (awalkerinit < lowerlimits)]
+            for j in list(range(ndim)):
+                lowerlimit=bnds[j][0]
+                upperlimit=bnds[j][1]
+                if (awalkerinit[j]<lowerlimit):
+                    awalkerinit[j]=lowerlimit
+                if (awalkerinit[j]>upperlimit):
+                    awalkerinit[j]=upperlimit
 
-            if np.any(awalkerinit > upperlimits):
-                awalkerinit[(awalkerinit > upperlimits)]= upperlimits[ (awalkerinit > uppperlimits)]
             
+            #if np.any((awalkerinit < lowerlimits)):
+            #    #try:
+            #    awalkerinit[(awalkerinit < lowerlimits)]= lowerlimits[ (awalkerinit < lowerlimits)]
+            #    #except:
+            #    #    print("awalkerinit",awalkerinit)
+            #    #    print("lowerlimits",lowerlimits)
+            #    #    print("(awalkerinit < lowerlimits)",(awalkerinit < lowerlimits))
+            #        
+            #if np.any((awalkerinit > upperlimits)):
+            #    #try:
+            #    awalkerinit[(awalkerinit > upperlimits)]= upperlimits[ (awalkerinit > upperlimits)]
+            #    #except:
+            #    #    print("awalkerinit",awalkerinit)
+            #    #    print("upperlimits",upperlimits)
+            #    #    print("(awalkerinit > upperlimits)",(awalkerinit > upperlimits))
                 
         pos.append(awalkerinit)
 
