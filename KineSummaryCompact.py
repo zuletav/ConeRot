@@ -18,7 +18,7 @@ sys.path.append(include_path)
 import ImUtils.Resamp as Resamp
 import ImUtils.Cube2Im as Cube2Im
 
-def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,VisibleXaxis=False,VisibleYaxis=False,DoBeamEllipse=False,DoGreyCont=False,DoCB=False,Clevs=False,Region=False,vsyst=0.,nplotsx=1,nplotsy=1,Region_Contours=False,SymmetricRange=False,UseScatter=False,cmap='ocean_r',filename_weights='',SubtractVsyst=False,ColorBarScale=1.,cblabel='km/s',Zoom=False,side=3.5,RegionOfInterest=False,a_min=-1,a_max=-1,FilterOutliers=True):
+def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,VisibleXaxis=False,VisibleYaxis=False,DoBeamEllipse=False,DoGreyCont=False,DoCB=False,Clevs=False,Region=False,vsyst=0.,nplotsx=1,nplotsy=1,Region_Contours=False,SymmetricRange=False,UseScatter=False,cmap='ocean_r',filename_weights='',SubtractVsyst=False,ColorBarScale=1.,cblabel='km/s',Zoom=False,side=3.5,RegionOfInterest=False,a_min=-1,a_max=-1,FilterOutliers=True,MaskRegions=True):
 
         print("vsyst",vsyst)
 
@@ -155,7 +155,9 @@ def addimage(iplotpos,label,atitle,filename_grey,filename_contours=False,Visible
         subim_region[np.where(subim_region < 0.)] = 0.
         subim_region[np.where(subim_region > 1.)] = 1.
 
-        subim_grey[np.where(subim_region < 0.5)] = 0.
+        if MaskRegions:
+                subim_grey[np.where(subim_region < 0.5)] = 0.
+                
         print("vsyst",vsyst)
 
 
@@ -606,7 +608,7 @@ def exec_summary_allrads(workdir,filename_source,vsyst=0.,basename_errormap=Fals
                 filename_contours=False
                 iplotpos += 1
                 print("iplotpos",iplotpos)
-                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers)
+                addimage(iplotpos,label,atitle,filename_grey,filename_contours,VisibleXaxis=True,VisibleYaxis=False,DoBeamEllipse=False,nplotsx=nplotsx,nplotsy=nplotsy,Region_Contours=False,SymmetricRange=False,cmap='ocean_r',DoCB=True,ColorBarScale=1E6,cblabel=r'$\mu{\rm Jy\,beam}^{-1}$',vsyst=vsyst, Zoom=Zoom,RegionOfInterest=RegionOfInterest,side=side,a_min=a_min,a_max=a_max,FilterOutliers=FilterOutliers,MaskRegions=False)
 
 
 
