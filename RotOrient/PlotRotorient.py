@@ -522,7 +522,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         else:
             (ymin,ymax,voff,scale_radprofile)=RotCurve.PlotV_phi(axprofile,rrs,a_min,a_max,v_Phi_prof,sv_Phi_prof,v_Phi_prof_mid,distance,cosi,bmaj, DoStellarMass=True, ContinuumGaps=rgaps,label=r'',RadialScaling=RadialScaling,title=title,MidPlaneExtrapol=MidPlaneExtrapol)
 
-    jpos+=1
+        jpos+=1
 
 
     if DoFixIncPA and XCheckFixIncPA:
