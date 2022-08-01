@@ -101,6 +101,7 @@ class Model():
                  bmin=0.07, # arcsec
                  Ncorr=1.,  # dimensionless
                  DoFarSideOnly=False,
+                 RestrictAvToRadialDomain=False,
                  TriangleFile='triangle.png',
                  Diskgeometry={}):
 

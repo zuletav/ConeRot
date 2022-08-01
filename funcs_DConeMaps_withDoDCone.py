@@ -7,20 +7,21 @@ from scipy import ndimage
 from astropy.io import fits as pf
 import re
 from copy import deepcopy
+from astropy.wcs import WCS
+from scipy import optimize
 import time
+from time import gmtime, strftime
 
 import matplotlib as mpl
-mpl.use('Agg')
 
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from pylab import *
 import matplotlib.colors as colors
 
-
-include_path = '/home/simon/common/python/include/'
+include_path = '/Users/simon/common/python/include/'
 sys.path.append(include_path)
 from ImUtils.Resamp import gridding
-from ImUtils.Cube2Im import Cube2Im
 
 if not sys.warnoptions:
     import os, warnings
@@ -31,7 +32,7 @@ if not sys.warnoptions:
 
 
 def cartesian2conicpolar(outcoords, inputshape, origin, inc=0., tanpsi=0.):
-    """Coordinate transform for converting a conic polar array to Cartesian coordinates. 
+    """Coordinate transform for converting a polar array to Cartesian coordinates. 
     inputshape is a tuple containing the shape of the polar array. origin is a
     tuple containing the x and y indices of where the origin should be in the
     output array."""
@@ -152,6 +153,66 @@ def conicpolar2cartesian_ellipse(outcoords,
     return (rindex, thetaindex)
 
 
+#def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.):
+#    yindex, xindex = outcoords
+#    x0, y0 = origin
+#    nx=inputshape[0]
+#    ny=inputshape[1]
+#    x = -float(xindex - x0)
+#    y = float(yindex - y0)
+#
+#    tanpsi0=tanpsi
+#
+#
+#    a=((np.tan(inc) * tanpsi0)**2-1.0)
+#    b=-2.*x*np.sin(inc)* tanpsi0/(np.cos(inc))**2
+#    c=y**2+(x**2/(np.cos(inc)**2))
+#    Delta=b**2-4.*a*c
+#    rho=(-b-np.sqrt(Delta))/(2.*a)
+#    rindex = rho
+#    if (rho == 0.):
+#        costheta = 0.
+#    else:
+#        costheta = y / rho
+#
+#
+#    #sintheta=np.sqrt( 1.- costheta**2)
+#    #if (x<0):
+#    #    sintheta*=-1
+#
+#    #xp=(rho*sintheta/np.cos(inc)) + (tanpsi0*rho  - rho*sintheta*np.tan(inc)) * np.sin(inc)
+#
+#    H1=tanpsi0*rho
+#    num= x - H1 * np.sin(inc)
+#    denom= rho * ( (1./np.cos(inc))  - np.tan(inc) * np.sin(inc))
+#    sintheta= num/ denom
+#
+#    theta=np.arccos(costheta)
+#
+#    if sintheta<0:
+#        theta = 2.*np.pi - theta
+#
+#
+#
+#    #slope=np.tan(inc)#*tanpsi0
+#
+#    #if (x<0.):
+#    #    if (x<slope*y):
+#    #        #print("theta",theta,"x",x,"y",y,"costheta",costheta)
+#
+#
+#    #if (x<0):
+#    #    #print("theta",theta,"x",x,"y",y)
+#    #    theta += np.pi
+#
+#    thetaindex = (theta * float(nx-1) / (2. * np.pi))
+#    #thetaindex = (theta * float(nx) / (np.pi))
+#
+#
+#
+#    return (rindex,thetaindex)
+
+
 def polar2cartesian(outcoords, inputshape, origin, inc=0.):
     yindex, xindex = outcoords
     x0, y0 = origin
@@ -177,6 +238,56 @@ def polar2cartesian(outcoords, inputshape, origin, inc=0.):
     return (rindex, thetaindex)
 
 
+#
+#def polar2cartesian(outcoords, inputshape, origin,inc=0.):
+#    yindex, xindex = outcoords
+#    x0, y0 = origin
+#    nx=inputshape[0]-1
+#    ny=inputshape[1]-1
+#    x = -float(xindex - x0)
+#    y = float(yindex - y0)
+#
+#    rho=np.sqrt((x**2/(np.cos(inc)**2))+y**2)
+#    rindex = rho
+#    if (rho == 0.):
+#        costheta = 0.
+#    else:
+#        costheta = y / rho
+#
+#    # theta=np.arccos(costheta)
+#    theta = np.arctan2((-x/np.cos(inc)), y)
+#    if (theta < 0):
+#        theta = theta + 2.*np.pi
+#
+#    thetaindex = (theta * float(nx) / (2. * np.pi))
+#
+#    return (rindex,thetaindex)
+
+# def exec_flatpolar(filename_fullim,hdr2,aresampim,PA,cosi):
+#     rotangle= PA - 180.
+#     #    rotangle= PA
+#     im1rot = ndimage.rotate(aresampim, rotangle, reshape=False)
+#     fileout_rotated=re.sub('fullim.fits', 'rotated.fits', filename_fullim)
+#     pf.writeto(fileout_rotated,im1rot, hdr2, overwrite=True)
+#
+#
+#     hdr3 = deepcopy(hdr2)
+#     hdr3['CDELT1']=hdr3['CDELT1']*cosi
+#     fileout_stretched=re.sub('fullim.fits', 'stretched.fits', filename_fullim)
+#     im3=np.double(gridding(fileout_rotated,hdr3))
+#     pf.writeto(fileout_stretched,im3, hdr2, overwrite=True)
+#
+#
+#     nx=hdr2['NAXIS1']
+#     ny=hdr2['NAXIS2']
+#
+#     aim_polar = sp.ndimage.geometric_transform(im3,cartesian2polar,
+#                                                order=1,
+#                                                output_shape = (im3.shape[0], im3.shape[1]),
+#                                                extra_keywords = {'inputshape':im3.shape,
+#                                                                  'origin':(((float(nx)+1.)/2.)-1.,((float(ny)+1.)/2.)-1.)})
+#
+#     return aim_polar
 
 
 def carttoconicpolar(im, inc, tanpsi):
@@ -287,7 +398,7 @@ def exec_prep_files(M):
     if (hdr0['NAXIS'] > 2):
         if (M.Verbose):  #
             print("running cube2im")
-        hdu = Cube2Im.slice0(filename_source, False)
+        hdu = cube2im(filename_source, False)
 
     im1 = hdu[0].data
     im1 = im1 * M.unitscale
@@ -310,7 +421,7 @@ def exec_prep_files(M):
         hduerr = pf.open(M.filename_errormap)
         hdrerr = hduerr[0].header
         if (hdrerr['NAXIS'] > 2):
-            hduerr = Cube2Im.slice0(M.filename_errormap, False)
+            hduerr = cube2im(M.filename_errormap, False)
 
         imerr1 = hduerr[0].data
         imerr1 = imerr1 * M.unitscale
@@ -467,15 +578,22 @@ def exec_conicpolar_expansions(M):
     workdir = M.workdir
     inc = M.inc
     tanpsi = M.tanpsi
+    RA = M.RA
+    DEC = M.DEC
+    x_center = M.x_center
+    y_center = M.y_center
+    DoAzimuthalProfile = M.DoAzimuthalProfile
     PlotRadialProfile = M.PlotRadialProfile
     a_min = M.a_min
     a_max = M.a_max
     typicalerror = M.typicalerror
+    InjectNoise = M.InjectNoise
     DumpAllFitsFiles = M.DumpAllFitsFiles
     DoDCone = M.DoDCone
+    domain = M.domain
+    fieldscale = M.fieldscale  # shrink radial field of view of polar maps by this factor
     DoAccr = M.DoAccr
     DoMerid = M.DoMerid
-    RestrictAvToRadialDomain = M.RestrictAvToRadialDomain  # set to True is faster but may lead to discontinuities in region averages.
 
     DoFarSideOnly = M.DoFarSideOnly
 
@@ -489,6 +607,7 @@ def exec_conicpolar_expansions(M):
     inbasename = os.path.basename(filename_source)
     filename_fullim = re.sub('.fits', '_fullim.fits', inbasename)
     filename_fullim = workdir + filename_fullim
+    fileout_centered = re.sub('fullim.fits', 'centered.fits', filename_fullim)
 
     if (M.DoErrorMap):
         inbasenameerr = os.path.basename(M.filename_errormap)
@@ -496,6 +615,10 @@ def exec_conicpolar_expansions(M):
         filename_fullimerr = workdir + filename_fullimerr
         filename_fullimw = re.sub('.fits', '_fullimw.fits', inbasenameerr)
         filename_fullimw = workdir + filename_fullimw
+        fileout_centerederr = re.sub('fullim.fits', 'centered.fits',
+                                     filename_fullimerr)
+        fileout_centeredw = re.sub('fullim.fits', 'wcentered.fits',
+                                   filename_fullimerr)
 
     resamp = hdu.data
     hdr2 = hdu.header
@@ -516,6 +639,7 @@ def exec_conicpolar_expansions(M):
     else:
         mumap = np.ones(resamp.shape)
 
+    #rotangle= M.PA - 180.
     rotangle = M.PA
 
     im1rot = ndimage.rotate(resamp, rotangle, reshape=False)
@@ -661,6 +785,7 @@ def exec_conicpolar_expansions(M):
         if (M.Verbose):
             print("vsyst from M = ", vsyst)
 
+    RestrictAvToRadialDomain = False  # set to True is faster but may lead to discontinuities in region averages.
     for irrs in range(len(rrs)):
 
         KepAmps[irrs] = 0.
@@ -977,6 +1102,8 @@ def exec_conicpolar_expansions(M):
     v_Phi_prof = np.nan_to_num(v_Phi_prof)
     sv_Phi_prof = np.nan_to_num(sv_Phi_prof)
 
+    #v_Phi_prof[np.isnan(v_Phi_prof)]=0.
+    #sv_Phi_prof[np.isnan(sv_Phi_prof)]=0.
 
     v_R_prof = AccrAmps / sini
     sv_R_prof = sAccrAmps / np.fabs(sini)
@@ -988,6 +1115,11 @@ def exec_conicpolar_expansions(M):
     v_z_prof = np.nan_to_num(v_z_prof)
     sv_z_prof = np.nan_to_num(sv_z_prof)
 
+    #bmaj=hdr2['BMAJ']
+    #print( "bmaj = ",bmaj,"\n";)
+    #Nind=2.*np.pi*rrs /(cosi * bmaj*3600.)
+    #dispv_Phi_prof=sv_Phi_prof.copy()
+    #sv_Phi_prof=sv_Phi_prof/np.sqrt(Nind)
 
     ######################################################################
     # now compute chi2 in polar coords
@@ -1039,6 +1171,11 @@ def exec_conicpolar_expansions(M):
                 print(("irrs %d irrs r %f A %f chi2 %f chi2_mu %f %s " %
                        (irrs, rrs[irrs], A, subchi2, subchi2_mumap, flag)))
 
+        #(nr,nphis)=im_polar_av.shape
+        #im_phi=np.tile(phis_rad,(nphis,1))
+        #im_cosphi=np.tile(np.cos(phis_rad),(nphis,1))
+
+        #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
         zeimage = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
         zeimage = np.nan_to_num(zeimage)
         deltaChi2 = np.sum(zeimage, axis=1)
@@ -1080,9 +1217,12 @@ def exec_conicpolar_expansions(M):
         dispv_Phi_prof = np.nan_to_num(dispv_Phi_prof)
 
     else:
+        #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
         zeimage = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
 
+        #zeimage=weights*(im_polar-im_polar_av)**2
         zeimage = np.nan_to_num(zeimage)
+        #deltaChi2 =  np.sum(zeimage,axis=1)
 
         if (np.any(weights < 0.)):
             sys.exit("negative weights!!!!")
