@@ -50,7 +50,7 @@ class OptimModel():
     def __init__(self, M,
                  RunMCMC=False,
                  Nit=1, #MCMC iterations
-                 nwalkers=1,
+                 nwalkers=-1,
                  burn_in=50,
                  n_cores_MCMC=1,
                  BlindMCMC=False,

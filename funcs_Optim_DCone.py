@@ -8,7 +8,7 @@ from multiprocessing import Pool
 from iminuit import Minuit
 import matplotlib.pyplot as plt
 
-include_path = '/Users/simon/common/python/include/'
+include_path = '/home/simon/common/python/include/'
 sys.path.append(include_path)
 from ConeRot.DConeMaps import *
 import ConeRot.KineSummary as KineSummary
@@ -304,7 +304,7 @@ def exec_emcee(M, result_ml, RunMCMC, OptimM):
         #sampler.run_mcmc(pos, Nit)
 
         from multiprocessing import Pool
-        with Pool(n_cores) as pool:
+        with Pool(processes=n_cores) as pool:
             sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool)
             start = time.time()
             sampler.run_mcmc(pos, Nit, progress=True)
@@ -589,7 +589,7 @@ def exec_Regions(M, OptimM):
     pass_model(M, OptimM)
 
     if (n_cores_regions > 1):
-        p = Pool(n_cores_regions)
+        p = Pool(processes=n_cores_regions)
         passoutput = p.map(proc_1region, range(M.n_abins - 1))
         p.close()
     else:
