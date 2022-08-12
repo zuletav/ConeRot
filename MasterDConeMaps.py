@@ -5,7 +5,7 @@ import numpy as np
 from astropy.io import fits as pf
 import re
 
-include_path = '/Users/simon/common/python/include/'
+include_path = '/home/simon/common/python/include/'
 sys.path.append(include_path)
 import ConeRot.DConeMaps as DConeMaps
 from ImUtils.FixHeads import fixhead_3

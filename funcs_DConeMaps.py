@@ -10,9 +10,6 @@ from copy import deepcopy
 import time
 
 import matplotlib as mpl
-
-mpl.use('Agg')
-
 import matplotlib.pyplot as plt
 from pylab import *
 import matplotlib.colors as colors
@@ -22,6 +19,8 @@ sys.path.append(include_path)
 from ImUtils.Resamp import gridding
 from ImUtils.Cube2Im import slice0
 import ConeRot.TakeAzAv as TakeAzAv
+import ConeRot.ConicTransforms_numba as ConicTransforms
+# import PyVtools.Vtools as Vtools
 
 if not sys.warnoptions:
     import os, warnings
@@ -40,7 +39,8 @@ def cartesian2conicpolar(outcoords, inputshape, origin, inc=0., tanpsi=0.):
     rindex, thetaindex = outcoords
     x0, y0 = origin
 
-    theta = float(thetaindex) * 2. * np.pi / float(inputshape[0])
+    #theta = float(thetaindex) * 2. * np.pi / float(inputshape[0])
+    theta = thetaindex * 2. * np.pi / inputshape[0]
 
     y = rindex * np.cos(theta)
 
@@ -50,7 +50,7 @@ def cartesian2conicpolar(outcoords, inputshape, origin, inc=0., tanpsi=0.):
              (height - (rindex*np.sin(theta))*np.tan(inc))*np.sin(inc)
 
     ix = -x + x0
-    iy = y + float(y0)
+    iy = y + y0
 
     return (iy, ix)
 
@@ -64,14 +64,15 @@ def cartesian2polar(outcoords, inputshape, origin, inc=0.):
     rindex, thetaindex = outcoords
     x0, y0 = origin
 
-    theta = float(thetaindex) * 2. * np.pi / float(inputshape[0] - 1.)
+    #theta = float(thetaindex) * 2. * np.pi / float(inputshape[0] - 1.)
+    theta = thetaindex * 2. * np.pi / (inputshape[0] - 1.)
 
     y = rindex * np.cos(theta)
 
     x = rindex * np.sin(theta) * np.cos(inc)
 
     ix = -x + x0
-    iy = y + float(y0)
+    iy = y + y0
 
     return (iy, ix)
 
@@ -178,7 +179,7 @@ def polar2cartesian(outcoords, inputshape, origin, inc=0.):
     return (rindex, thetaindex)
 
 
-def carttoconicpolar(im, inc, tanpsi):
+def carttoconicpolar_nonumba(im, inc, tanpsi):
 
     (ny, nx) = im.shape
     (i0, j0) = (((float(nx) + 1.) / 2.) - 1., ((float(ny) + 1.) / 2.) - 1.)
@@ -194,6 +195,28 @@ def carttoconicpolar(im, inc, tanpsi):
                                                   'tanpsi': tanpsi,
                                                   'origin': (i0, j0)
                                               })
+    return im_polar
+
+
+def carttoconicpolar(im, inc, tanpsi):
+
+    #(ny, nx) = im.shape
+    #im = np.float32(im)
+    #im_polar = np.zeros(im.shape, dtype=float32)
+    #xoffset_polar = np.zeros(im.shape, dtype=float32)
+    #yoffset_polar = np.zeros(im.shape, dtype=float32)
+
+    im_polar = np.zeros(im.shape)
+    xoffset_polar = np.zeros(im.shape)
+    yoffset_polar = np.zeros(im.shape)
+
+    ConicTransforms.cart2conicpolar_matrix(im,
+                                           im_polar,
+                                           xoffset_polar,
+                                           yoffset_polar,
+                                           inc=inc,
+                                           tanpsi=tanpsi)
+    
     return im_polar
 
 
@@ -554,7 +577,8 @@ def exec_conicpolar_expansions(M):
         print("using inc ", inc * np.pi / 180., " tanpsi ", tanpsi)
 
     im_polar = carttoconicpolar(im3, inc, tanpsi)
-
+    
+    
     if (DoDCone):
         mumap_polarpos = carttoconicpolar(mumap, inc, tanpsi)
 
@@ -592,12 +616,14 @@ def exec_conicpolar_expansions(M):
         if (DumpAllFitsFiles):
             hdupolarw.writeto(fileout_polarw, overwrite=True)
     else:
+        # im_polarw = np.ones(im_polar.shape, dtype=float32) / typicalerror**2
         im_polarw = np.ones(im_polar.shape) / typicalerror**2
 
     ######################################################################
     # take azimuthal averages on polar maps
 
     weights = im_polarw.copy()
+    #im_Npolcorr = np.ones(im_polarw.shape, dtype=float32)
     im_Npolcorr = np.ones(im_polarw.shape)
 
     if (np.any(weights < 0.)):
@@ -753,7 +779,8 @@ def exec_conicpolar_expansions(M):
 
             mu_vec = (1. - A * cos_vec)
 
-            mumap_polarpos[irrs, :] = np.float32(mu_vec)
+            #mumap_polarpos[irrs, :] = np.float32(mu_vec)
+            mumap_polarpos[irrs, :] = mu_vec
 
             # testing for chi2 improvement:
             TestChi2Improv = False
@@ -835,8 +862,6 @@ def exec_conicpolar_expansions(M):
         vec_typicalerror = np.sqrt(1. / vec_median_w)
         deltaChi2 = (vec_w_var / vec_typicalerror**2.)
 
-
-        
         #colapsed_weights=np.sum(weights,axis=1)
         #dispv_Phi_prof=colapsed_weights.copy()
         #mask=(colapsed_weights > 1E-10)
@@ -849,7 +874,6 @@ def exec_conicpolar_expansions(M):
         #Nind=2.*np.pi*rrs * cosi /(M.bmaj) # number of beams at each radius
         #sv_Phi_prof=sv_Phi_prof/np.sqrt(Nind)
         #sv_Phi_prof=np.nan_to_num(sv_Phi_prof)
-
 
     if (M.DoMerid):
         M.RadialProfile = [
@@ -927,7 +951,6 @@ def exec_conicpolar_expansions(M):
             print(
                 "CONICPOLAR2CARTESIAN TRANSFORM FOR AZIM AV START im_polar_av")
             print("using inc ", inc * np.pi / 180., "deg tanpsi ", tanpsi)
-
 
         #(ny,nx) = im_polar.shape
         #x=np.arange(0,nx)

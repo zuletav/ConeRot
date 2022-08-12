@@ -1,7 +1,5 @@
 import sys
 import numpy as np
-import scipy as s
-
 from numba import jit
 
 
@@ -48,11 +46,13 @@ def exec_av(DoErrorMap,
             continue
 
         v0_vec = im_polar[irrs, :] - vsyst
+        # print("type v0_vec", v0_vec.dtype) ## DEV 
         if (DoErrorMap):
             w_vec = weights[irrs, :]
         else:
-            w_vec = np.ones(len(v0_vec)) / typicalerror**2
+            w_vec = np.ones(len(v0_vec), dtype='float32') / typicalerror**2
 
+        # print("type w_vec", w_vec.dtype) ## DEV
         mask = (w_vec < 1E-10)
         w_vec_nozeros = w_vec
         w_vec_nozeros[mask] = 1E-10
@@ -60,14 +60,13 @@ def exec_av(DoErrorMap,
         err_vec[mask] = 1E20  # np.inf
         w_vec[mask] = 0.
 
-        
         thisradius = rrs[irrs]  #arcsec
         # cosi=np.cos(inc)
         #Nind=2.*np.pi*thisradius * np.fabs(cosi) /(bmaj) # aprox number of beams at each radius
         Nind = 2. * np.pi * thisradius / (
             bmaj)  # aprox number of beams at each radius
         if (Nind < 1.):
-            Nind=1.
+            Nind = 1.
 
         Nsum = len(w_vec)
         Npolcorr = Nsum / Nind
@@ -75,7 +74,6 @@ def exec_av(DoErrorMap,
         if Npolcorr < 1:
             Npolcorr = 1.
         im_Npolcorr[irrs, :] = Npolcorr
-
 
         if ((np.sum(w_vec) == 0.)
                 or (np.sum(w_vec * (np.cos(phis_rad))**2)**2 == 0.)):
@@ -87,7 +85,7 @@ def exec_av(DoErrorMap,
             sMeridAmp = 1E20
         else:
             if (InheritMumap):
-                print("coucou") # DEV DEV 
+                print("coucou")  # DEV DEV
                 # mumap_vec = mumap_polarpos[irrs, :]
                 # if (DoAccr):
                 #     sys.exit("Not yet programmed DoAccr with mumap")
