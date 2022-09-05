@@ -17,14 +17,10 @@ import matplotlib.colors as colors
 include_path = '/home/simon/common/python/include/'
 sys.path.append(include_path)
 from ImUtils.Resamp import gridding
-<<<<<<< HEAD
-import ImUtils.Cube2Im as Cube2Im
-=======
 from ImUtils.Cube2Im import slice0
 import ConeRot.TakeAzAv as TakeAzAv
 import ConeRot.ConicTransforms_numba as ConicTransforms
 # import PyVtools.Vtools as Vtools
->>>>>>> 2e46390b0ce72b5fc8653a00034a2645b3d2600c
 
 if not sys.warnoptions:
     import os, warnings
@@ -695,7 +691,6 @@ def exec_conicpolar_expansions(M):
         if (M.Verbose):
             print("vsyst from M = ", vsyst)
 
-<<<<<<< HEAD
     for irrs in range(len(rrs)):
         im_polar_rrs[irrs,: ] = rrs[irrs]
         im_polar_phis[irrs,: ] = phis_rad
@@ -996,7 +991,7 @@ def exec_conicpolar_expansions(M):
         else:
             v0_vec_av = KepAmp * np.cos(phis_rad)
             im_polar_av[irrs, :] = v0_vec_av + vsyst
-=======
+            
     TakeAzAv.exec_av(M.DoErrorMap,
                      M.bmaj,
                      M.InheritMumap,
@@ -1025,7 +1020,6 @@ def exec_conicpolar_expansions(M):
                      DoMerid=DoMerid,
                      DoFarSideOnly=DoFarSideOnly,
                      mumap_polarpos=None)
->>>>>>> 2e46390b0ce72b5fc8653a00034a2645b3d2600c
 
     # SIGNS CALIBRATED ON THE RT TRIALS WIGGLERT
     # beware when flipping across the sky as observer sees the cone with psi < 0, with z<0, where a wind would have v_z < 0 in disk coordinates.
