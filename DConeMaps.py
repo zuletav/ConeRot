@@ -81,6 +81,7 @@ class Model():
                  tanpsi0=0.1,
                  a_min_regions=0.2,
                  a_max_regions=0.3,
+                 iregion = 0, # region index
                  n_abins=12,
                  InheritMumap=False,  # pass mumap from a previous orientation - used as weights in KepAmps
                  mumap=None,
@@ -88,7 +89,11 @@ class Model():
                  HduDConemoddrot=None,
                  HdudiffDConemoddrot=None,
                  Hdudiff_faceon=None,
-                 Hduresamp_faceon=None,
+                 Hduresamp_faceon=None, 
+                 Hdurrs=None,
+                 Hduphis=None,
+                 Hdurrs_faceon=None,
+                 Hduphis_faceon=None,
                  chi2_prev=0.,
                  polarchi2=0.,
                  skychi2=0.,
@@ -101,6 +106,7 @@ class Model():
                  bmin=0.07, # arcsec
                  Ncorr=1.,  # dimensionless
                  DoFarSideOnly=False,
+                 ExtendRegions=False, # True: extends inner and outer regions to whole radial domain - for plots only
                  RestrictAvToRadialDomain=False,
                  TriangleFile='triangle.png',
                  Diskgeometry={}):

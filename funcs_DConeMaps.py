@@ -20,7 +20,7 @@ import matplotlib.colors as colors
 include_path = '/home/simon/common/python/include/'
 sys.path.append(include_path)
 from ImUtils.Resamp import gridding
-from ImUtils.Cube2Im import Cube2Im
+import ImUtils.Cube2Im as Cube2Im
 
 if not sys.warnoptions:
     import os, warnings
@@ -478,7 +478,7 @@ def exec_conicpolar_expansions(M):
     RestrictAvToRadialDomain = M.RestrictAvToRadialDomain  # set to True is faster but may lead to discontinuities in region averages.
 
     DoFarSideOnly = M.DoFarSideOnly
-
+    
     hdu = M.Hducentered
     hduw = M.Hduwcentered
 
@@ -603,6 +603,8 @@ def exec_conicpolar_expansions(M):
         sys.exit("negative polarweights!!")
 
     im_polar_av = np.copy(im_polar)
+    im_polar_rrs = np.zeros(im_polar.shape)
+    im_polar_phis = np.zeros(im_polar.shape)
 
     rrs = 3600. * (np.arange(hdrpolar['NAXIS2']) - hdrpolar['CRPIX2'] +
                    1.0) * hdrpolar['CDELT2'] + hdrpolar['CRVAL2']
@@ -662,7 +664,8 @@ def exec_conicpolar_expansions(M):
             print("vsyst from M = ", vsyst)
 
     for irrs in range(len(rrs)):
-
+        im_polar_rrs[irrs,: ] = rrs[irrs]
+        im_polar_phis[irrs,: ] = phis_rad
         KepAmps[irrs] = 0.
         sKepAmps[irrs] = 0.
         AccrAmps[irrs] = 0.
@@ -1247,15 +1250,39 @@ def exec_conicpolar_expansions(M):
         diff_im_faceon = resamp_faceon - imazim_faceon
 
         im_polar_av_region = im_polar_av.copy()
+
         im_polar_av_region[0:ia_min] = 0.
         im_polar_av_region[ia_min:ia_max] = 1.
         im_polar_av_region[ia_max:] = 0.
+        
+        if M.ExtendRegions:
+            if M.iregion==0:
+                print("extending inwards domain of inner region")
+                im_polar_av_region[0:ia_min] = 1.
+            if M.iregion==(M.n_abins - 2):
+                print("extending outwards domain of inner region")
+                im_polar_av_region[ia_max:] = 1.
+
         imazim_region = conicpolartocart(im_polar_av_region, inc, tanpsi)
         imazim_region_drot = ndimage.rotate(imazim_region,
                                             -rotangle,
                                             reshape=False,
                                             order=0)
         imazim_region_faceon = polartocart(im_polar_av_region, faceoninc)
+
+        imazim_rrs = conicpolartocart(im_polar_rrs, inc, tanpsi)
+        imazim_rrs_drot = ndimage.rotate(imazim_rrs,
+                                            -rotangle,
+                                            reshape=False,
+                                            order=0)
+        imazim_rrs_faceon = polartocart(im_polar_rrs, faceoninc)
+
+        imazim_phis = conicpolartocart(im_polar_phis, inc, tanpsi)
+        imazim_phis_drot = ndimage.rotate(imazim_phis,
+                                            -rotangle,
+                                            reshape=False,
+                                            order=0)
+        imazim_phis_faceon = polartocart(im_polar_phis, faceoninc)
 
         mask = np.where(imazim_region_drot > 0.9)
         skychi2 = np.sum(weights[mask] * diff_im[mask]**2) / M.Ncorr
@@ -1265,6 +1292,26 @@ def exec_conicpolar_expansions(M):
         hdudiff.data = diff_im
         hdudiff.header = hdr2
         M.Hdudiff = hdudiff
+
+        hdurrs = pf.PrimaryHDU()
+        hdurrs.data = imazim_rrs_drot
+        hdurrs.header = hdr2
+        M.Hdurrs = hdurrs
+
+        hdurrs_faceon = pf.PrimaryHDU()
+        hdurrs_faceon.data = imazim_rrs_faceon
+        hdurrs_faceon.header = hdr2
+        M.Hdurrs_faceon = hdurrs_faceon
+
+        hduphis_faceon = pf.PrimaryHDU()
+        hduphis_faceon.data = imazim_phis_faceon
+        hduphis_faceon.header = hdr2
+        M.Hduphis_faceon = hduphis_faceon
+
+        hduphis = pf.PrimaryHDU()
+        hduphis.data = imazim_phis_drot
+        hduphis.header = hdr2
+        M.Hduphis = hduphis
 
         hdudiff_faceon = pf.PrimaryHDU()
         hdudiff_faceon.data = diff_im_faceon

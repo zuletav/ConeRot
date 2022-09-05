@@ -69,6 +69,7 @@ class Setup():
                  InheritMumap=False,  # pass mumap from a previous orientation - used as weights in KepAmps
                  StoreRegions=False,
                  DoFarSideOnly=False,
+                 ExtendRegions=False,
                  exec_master_script='exec_master.py'):
 
 
