@@ -10,6 +10,9 @@ from copy import deepcopy
 import time
 
 import matplotlib as mpl
+
+mpl.use('Agg')
+
 import matplotlib.pyplot as plt
 from pylab import *
 import matplotlib.colors as colors
@@ -17,14 +20,7 @@ import matplotlib.colors as colors
 include_path = '/home/simon/common/python/include/'
 sys.path.append(include_path)
 from ImUtils.Resamp import gridding
-<<<<<<< HEAD
-import ImUtils.Cube2Im as Cube2Im
-=======
 from ImUtils.Cube2Im import slice0
-import ConeRot.TakeAzAv as TakeAzAv
-import ConeRot.ConicTransforms_numba as ConicTransforms
-# import PyVtools.Vtools as Vtools
->>>>>>> 2e46390b0ce72b5fc8653a00034a2645b3d2600c
 
 if not sys.warnoptions:
     import os, warnings
@@ -43,8 +39,7 @@ def cartesian2conicpolar(outcoords, inputshape, origin, inc=0., tanpsi=0.):
     rindex, thetaindex = outcoords
     x0, y0 = origin
 
-    #theta = float(thetaindex) * 2. * np.pi / float(inputshape[0])
-    theta = thetaindex * 2. * np.pi / inputshape[0]
+    theta = float(thetaindex) * 2. * np.pi / float(inputshape[0])
 
     y = rindex * np.cos(theta)
 
@@ -54,7 +49,7 @@ def cartesian2conicpolar(outcoords, inputshape, origin, inc=0., tanpsi=0.):
              (height - (rindex*np.sin(theta))*np.tan(inc))*np.sin(inc)
 
     ix = -x + x0
-    iy = y + y0
+    iy = y + float(y0)
 
     return (iy, ix)
 
@@ -68,15 +63,14 @@ def cartesian2polar(outcoords, inputshape, origin, inc=0.):
     rindex, thetaindex = outcoords
     x0, y0 = origin
 
-    #theta = float(thetaindex) * 2. * np.pi / float(inputshape[0] - 1.)
-    theta = thetaindex * 2. * np.pi / (inputshape[0] - 1.)
+    theta = float(thetaindex) * 2. * np.pi / float(inputshape[0] - 1.)
 
     y = rindex * np.cos(theta)
 
     x = rindex * np.sin(theta) * np.cos(inc)
 
     ix = -x + x0
-    iy = y + y0
+    iy = y + float(y0)
 
     return (iy, ix)
 
@@ -183,7 +177,7 @@ def polar2cartesian(outcoords, inputshape, origin, inc=0.):
     return (rindex, thetaindex)
 
 
-def carttoconicpolar_nonumba(im, inc, tanpsi):
+def carttoconicpolar(im, inc, tanpsi):
 
     (ny, nx) = im.shape
     (i0, j0) = (((float(nx) + 1.) / 2.) - 1., ((float(ny) + 1.) / 2.) - 1.)
@@ -199,28 +193,6 @@ def carttoconicpolar_nonumba(im, inc, tanpsi):
                                                   'tanpsi': tanpsi,
                                                   'origin': (i0, j0)
                                               })
-    return im_polar
-
-
-def carttoconicpolar(im, inc, tanpsi):
-
-    #(ny, nx) = im.shape
-    #im = np.float32(im)
-    #im_polar = np.zeros(im.shape, dtype=float32)
-    #xoffset_polar = np.zeros(im.shape, dtype=float32)
-    #yoffset_polar = np.zeros(im.shape, dtype=float32)
-
-    im_polar = np.zeros(im.shape)
-    xoffset_polar = np.zeros(im.shape)
-    yoffset_polar = np.zeros(im.shape)
-
-    ConicTransforms.cart2conicpolar_matrix(im,
-                                           im_polar,
-                                           xoffset_polar,
-                                           yoffset_polar,
-                                           inc=inc,
-                                           tanpsi=tanpsi)
-    
     return im_polar
 
 
@@ -284,8 +256,7 @@ def polartocart(im_polar, inc):
 
 
 def exec_prep_files(M):
-    """Load the input FITS files prepare the input FITS files
-    """
+
     filename_source = M.filename_source
     workdir = M.workdir
     DumpAllFitsFiles = M.DumpAllFitsFiles
@@ -380,8 +351,6 @@ def exec_prep_files(M):
 
 
 def exec_grid_4center(M):
-    """prepare the input FITS files: zoom, resample, center, etc...
-    """
 
     workdir = M.workdir
     RA = M.RA
@@ -507,7 +476,7 @@ def exec_conicpolar_expansions(M):
     RestrictAvToRadialDomain = M.RestrictAvToRadialDomain  # set to True is faster but may lead to discontinuities in region averages.
 
     DoFarSideOnly = M.DoFarSideOnly
-    
+
     hdu = M.Hducentered
     hduw = M.Hduwcentered
 
@@ -581,8 +550,7 @@ def exec_conicpolar_expansions(M):
         print("using inc ", inc * np.pi / 180., " tanpsi ", tanpsi)
 
     im_polar = carttoconicpolar(im3, inc, tanpsi)
-    
-    
+
     if (DoDCone):
         mumap_polarpos = carttoconicpolar(mumap, inc, tanpsi)
 
@@ -620,14 +588,12 @@ def exec_conicpolar_expansions(M):
         if (DumpAllFitsFiles):
             hdupolarw.writeto(fileout_polarw, overwrite=True)
     else:
-        # im_polarw = np.ones(im_polar.shape, dtype=float32) / typicalerror**2
         im_polarw = np.ones(im_polar.shape) / typicalerror**2
 
     ######################################################################
     # take azimuthal averages on polar maps
 
     weights = im_polarw.copy()
-    #im_Npolcorr = np.ones(im_polarw.shape, dtype=float32)
     im_Npolcorr = np.ones(im_polarw.shape)
 
     if (np.any(weights < 0.)):
@@ -635,8 +601,6 @@ def exec_conicpolar_expansions(M):
         sys.exit("negative polarweights!!")
 
     im_polar_av = np.copy(im_polar)
-    im_polar_rrs = np.zeros(im_polar.shape)
-    im_polar_phis = np.zeros(im_polar.shape)
 
     rrs = 3600. * (np.arange(hdrpolar['NAXIS2']) - hdrpolar['CRPIX2'] +
                    1.0) * hdrpolar['CDELT2'] + hdrpolar['CRVAL2']
@@ -695,10 +659,8 @@ def exec_conicpolar_expansions(M):
         if (M.Verbose):
             print("vsyst from M = ", vsyst)
 
-<<<<<<< HEAD
     for irrs in range(len(rrs)):
-        im_polar_rrs[irrs,: ] = rrs[irrs]
-        im_polar_phis[irrs,: ] = phis_rad
+
         KepAmps[irrs] = 0.
         sKepAmps[irrs] = 0.
         AccrAmps[irrs] = 0.
@@ -996,36 +958,6 @@ def exec_conicpolar_expansions(M):
         else:
             v0_vec_av = KepAmp * np.cos(phis_rad)
             im_polar_av[irrs, :] = v0_vec_av + vsyst
-=======
-    TakeAzAv.exec_av(M.DoErrorMap,
-                     M.bmaj,
-                     M.InheritMumap,
-                     M.Verbose,
-                     M.PA,
-                     M.inc,
-                     M.tanpsi,
-                     rrs,
-                     phis_rad,
-                     im_polar,
-                     KepAmps,
-                     sKepAmps,
-                     AccrAmps,
-                     sAccrAmps,
-                     MeridAmps,
-                     sMeridAmps,
-                     im_polar_av,
-                     ia_min,
-                     ia_max,
-                     im_Npolcorr,
-                     vsyst=vsyst,
-                     typicalerror=typicalerror,
-                     weights=weights,
-                     RestrictAvToRadialDomain=RestrictAvToRadialDomain,
-                     DoAccr=DoAccr,
-                     DoMerid=DoMerid,
-                     DoFarSideOnly=DoFarSideOnly,
-                     mumap_polarpos=None)
->>>>>>> 2e46390b0ce72b5fc8653a00034a2645b3d2600c
 
     # SIGNS CALIBRATED ON THE RT TRIALS WIGGLERT
     # beware when flipping across the sky as observer sees the cone with psi < 0, with z<0, where a wind would have v_z < 0 in disk coordinates.
@@ -1088,7 +1020,6 @@ def exec_conicpolar_expansions(M):
 
             mu_vec = (1. - A * cos_vec)
 
-            #mumap_polarpos[irrs, :] = np.float32(mu_vec)
             mumap_polarpos[irrs, :] = mu_vec
 
             # testing for chi2 improvement:
@@ -1145,7 +1076,6 @@ def exec_conicpolar_expansions(M):
         dispv_Phi_prof = np.nan_to_num(dispv_Phi_prof)
 
     else:
-
         zeimage = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
 
         zeimage = np.nan_to_num(zeimage)
@@ -1261,6 +1191,8 @@ def exec_conicpolar_expansions(M):
                 "CONICPOLAR2CARTESIAN TRANSFORM FOR AZIM AV START im_polar_av")
             print("using inc ", inc * np.pi / 180., "deg tanpsi ", tanpsi)
 
+        start_time = time.time()
+
         #(ny,nx) = im_polar.shape
         #x=np.arange(0,nx)
         #y=np.arange(0,ny)
@@ -1294,9 +1226,9 @@ def exec_conicpolar_expansions(M):
 
         im4 = imazim  #gridding(fileout_stretched_av,hdr3)
 
-        #if (M.Verbose):
-        #    print("CONICPOLAR2CARTESIAN TRANSFORM FOR AZIM AV  DONE in",
-        #          time.time() - start_time)
+        if (M.Verbose):
+            print("CONICPOLAR2CARTESIAN TRANSFORM FOR AZIM AV  DONE in",
+                  time.time() - start_time)
 
         if (DumpAllFitsFiles):
             fileout_azimav = re.sub('fullim.fits', 'azim_av.fits',
@@ -1311,39 +1243,15 @@ def exec_conicpolar_expansions(M):
         diff_im_faceon = resamp_faceon - imazim_faceon
 
         im_polar_av_region = im_polar_av.copy()
-
         im_polar_av_region[0:ia_min] = 0.
         im_polar_av_region[ia_min:ia_max] = 1.
         im_polar_av_region[ia_max:] = 0.
-        
-        if M.ExtendRegions:
-            if M.iregion==0:
-                print("extending inwards domain of inner region")
-                im_polar_av_region[0:ia_min] = 1.
-            if M.iregion==(M.n_abins - 2):
-                print("extending outwards domain of inner region")
-                im_polar_av_region[ia_max:] = 1.
-
         imazim_region = conicpolartocart(im_polar_av_region, inc, tanpsi)
         imazim_region_drot = ndimage.rotate(imazim_region,
                                             -rotangle,
                                             reshape=False,
                                             order=0)
         imazim_region_faceon = polartocart(im_polar_av_region, faceoninc)
-
-        imazim_rrs = conicpolartocart(im_polar_rrs, inc, tanpsi)
-        imazim_rrs_drot = ndimage.rotate(imazim_rrs,
-                                            -rotangle,
-                                            reshape=False,
-                                            order=0)
-        imazim_rrs_faceon = polartocart(im_polar_rrs, faceoninc)
-
-        imazim_phis = conicpolartocart(im_polar_phis, inc, tanpsi)
-        imazim_phis_drot = ndimage.rotate(imazim_phis,
-                                            -rotangle,
-                                            reshape=False,
-                                            order=0)
-        imazim_phis_faceon = polartocart(im_polar_phis, faceoninc)
 
         mask = np.where(imazim_region_drot > 0.9)
         skychi2 = np.sum(weights[mask] * diff_im[mask]**2) / M.Ncorr
@@ -1353,26 +1261,6 @@ def exec_conicpolar_expansions(M):
         hdudiff.data = diff_im
         hdudiff.header = hdr2
         M.Hdudiff = hdudiff
-
-        hdurrs = pf.PrimaryHDU()
-        hdurrs.data = imazim_rrs_drot
-        hdurrs.header = hdr2
-        M.Hdurrs = hdurrs
-
-        hdurrs_faceon = pf.PrimaryHDU()
-        hdurrs_faceon.data = imazim_rrs_faceon
-        hdurrs_faceon.header = hdr2
-        M.Hdurrs_faceon = hdurrs_faceon
-
-        hduphis_faceon = pf.PrimaryHDU()
-        hduphis_faceon.data = imazim_phis_faceon
-        hduphis_faceon.header = hdr2
-        M.Hduphis_faceon = hduphis_faceon
-
-        hduphis = pf.PrimaryHDU()
-        hduphis.data = imazim_phis_drot
-        hduphis.header = hdr2
-        M.Hduphis = hduphis
 
         hdudiff_faceon = pf.PrimaryHDU()
         hdudiff_faceon.data = diff_im_faceon
