@@ -13,7 +13,6 @@ import ConeRot.Optim_DCone as Optim_DCone
 
 
 class Setup():
-<<<<<<< HEAD
     def __init__(self,
                  filename_source='',
                  filename_errormap='',
@@ -71,70 +70,6 @@ class Setup():
                  DoFarSideOnly=False,
                  ExtendRegions=False,
                  exec_master_script='exec_master.py'):
-=======
-    """ 
-        generate an instance for ConeRot 
-    """
->>>>>>> 2e46390b0ce72b5fc8653a00034a2645b3d2600c
-
-    def __init__(
-            self,
-            filename_source='',
-            filename_errormap='',
-            workdir='',
-            DoErrorMap=False,
-            typicalerror=0.1,
-            ComputeSystVelo=False,
-            vsyst=0.,
-            sigma_vsyst=0.,  #uncertainty in the inferred value of vsyst
-            fieldscale=1.,
-            pixscale_factor=1.,
-            unitscale=1.,
-            PA=0.,
-            inc=1.,
-            tanpsi=0.1,
-            rangePA=10.,
-            rangeinc=20. * np.pi / 180.,
-            rangetanpsi=0.4,
-            ClearWorkDir=True,
-            a_min=1.0,
-            a_max=2.0,
-            RestrictAvToRadialDomain=False,
-            DoRegions=False,
-            InheritGlobalInit=False,  # to force same initial conditions for conjgrad, in all regions
-            a_min_regions=1.0,
-            a_max_regions=2.0,
-            n_abins=10,
-            DoAccr=False,
-            DoAccr_fixPAinc=False,
-            DoMerid=False,
-            DoMerid_fixPAinc=False,
-            DoExec=True,
-            DoFixOrient=True,
-            DumpAllFitsFiles=False,
-            fout=False,
-            x_center=0.,
-            y_center=0.,
-            bmaj=1.,
-            bmin=1.,
-            DoConjGrad=False,
-            DoMinuit=False,
-            RunMCMC=False,
-            RecoverMCMC=False,
-            n_cores_MCMC=10,
-            Nit=140,
-            burn_in=70,
-            BlindMCMC=False,  # if Falses uses conjgrad optim for init
-            nwalkers=-1,  # <= 0 value will use defaults
-            domain=(),
-            RA=False,
-            DEC=False,
-            InjectNoise=False,
-            DoDCone=False,
-            InheritMumap=False,  # pass mumap from a previous orientation - used as weights in KepAmps
-            StoreRegions=False,
-            DoFarSideOnly=False,
-            exec_master_script='exec_master.py'):
         """ 
         generate an instance for ConeRot 
         """
