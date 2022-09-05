@@ -21,6 +21,8 @@ def exec_av(DoErrorMap,
             MeridAmps,
             sMeridAmps,
             im_polar_av,
+            im_polar_rrs,
+            im_polar_phis,
             ia_min,
             ia_max,
             im_Npolcorr,
@@ -34,7 +36,8 @@ def exec_av(DoErrorMap,
             mumap_polarpos=None):
 
     for irrs in range(len(rrs)):
-
+        im_polar_rrs[irrs,: ] = rrs[irrs]
+        im_polar_phis[irrs,: ] = phis_rad
         KepAmps[irrs] = 0.
         sKepAmps[irrs] = 0.
         AccrAmps[irrs] = 0.
