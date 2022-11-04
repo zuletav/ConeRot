@@ -35,6 +35,7 @@ class Setup():
                  a_min=1.0,
                  a_max=2.0,
                  DoRegions=False,
+                 RestrictAvToRadialDomain=False,
                  InheritGlobalInit=False, # to force same initial conditions for conjgrad, in all regions
                  a_min_regions=1.0,
                  a_max_regions=2.0,
