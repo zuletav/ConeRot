@@ -12,7 +12,7 @@ import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-include_path='/home/simon/common/python/include/'
+include_path='/home/azuleta/common/python/include/'
 sys.path.append(include_path)
 import ImUtils.Resamp as Resamp
 import ImUtils.Cube2Im as Cube2Im

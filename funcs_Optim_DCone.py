@@ -8,10 +8,10 @@ from multiprocessing import Pool
 from iminuit import Minuit
 import matplotlib.pyplot as plt
 
-include_path = '/home/simon/common/python/include/'
+include_path = '/home/azuleta/common/python/include/'
 sys.path.append(include_path)
-from ConeRot.DConeMaps import *
-import ConeRot.KineSummary as KineSummary
+from ConeRot_local.DConeMaps import *
+import ConeRot_local.KineSummary as KineSummary
 
 import time
 #from time import gmtime, strftime

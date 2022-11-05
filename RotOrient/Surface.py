@@ -31,7 +31,7 @@ if not sys.warnoptions:
     os.environ["PYTHONWARNINGS"] = "ignore" # Also affect subprocesses
 
 
-include_path='/home/simon/common/python/include/'
+include_path='/home/azuleta/common/python/include/'
 sys.path.append(include_path)
 from ImUtils.Resamp import gridding
 

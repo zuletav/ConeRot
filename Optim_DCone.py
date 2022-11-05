@@ -18,16 +18,16 @@ import matplotlib.colors as colors
 import scipy.optimize as op
 
 
-include_path='/Users/simon/common/python/include/'
+include_path='/Users/azuleta/common/python/include/'
 sys.path.append(include_path)
 
-from ConeRot.funcs_DConeMaps import * 
-from  ConeRot.DConeMaps import Model
-from ConeRot.funcs_Optim_DCone import exec_ConjGrad_1region
-import ConeRot.KineSummary as KineSummary
-from ConeRot.funcs_Optim_DCone import exec_emcee
-from ConeRot.funcs_Optim_DCone import exec_emcee
-from ConeRot.funcs_Optim_DCone import exec_Regions
+from ConeRot_local.funcs_DConeMaps import * 
+from  ConeRot_local.DConeMaps import Model
+from ConeRot_local.funcs_Optim_DCone import exec_ConjGrad_1region
+import ConeRot_local.KineSummary as KineSummary
+from ConeRot_local.funcs_Optim_DCone import exec_emcee
+from ConeRot_local.funcs_Optim_DCone import exec_emcee
+from ConeRot_local.funcs_Optim_DCone import exec_Regions
 
 
 

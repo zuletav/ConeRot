@@ -14,10 +14,10 @@ print("HOME: ",HOME)
 include_path=HOME+'/common/python/include/'
 sys.path.append(include_path)
 
-import ConeRot.RotOrient.LogResults as  LogResults
-import ConeRot.RotOrient.StellarMass as StellarMass 
-import ConeRot.RotOrient.RotCurve  as RotCurve
-import ConeRot.RotOrient.Orient as Orient
+import ConeRot_local.RotOrient.LogResults as  LogResults
+import ConeRot_local.RotOrient.StellarMass as StellarMass 
+import ConeRot_local.RotOrient.RotCurve  as RotCurve
+import ConeRot_local.RotOrient.Orient as Orient
 
 
 rgaps=[0.4433,  0.8575, 1.3923, 2.3]

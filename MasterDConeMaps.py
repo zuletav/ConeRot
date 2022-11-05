@@ -5,11 +5,11 @@ import numpy as np
 from astropy.io import fits as pf
 import re
 
-include_path = '/home/simon/common/python/include/'
+include_path = '/home/azuleta/common/python/include/'
 sys.path.append(include_path)
-import ConeRot.DConeMaps as DConeMaps
+import ConeRot_local.DConeMaps as DConeMaps
 from ImUtils.FixHeads import fixhead_3
-import ConeRot.Optim_DCone as Optim_DCone
+import ConeRot_local.Optim_DCone as Optim_DCone
 
 
 class Setup():

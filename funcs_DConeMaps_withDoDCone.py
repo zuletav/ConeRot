@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from pylab import *
 import matplotlib.colors as colors
 
-include_path = '/Users/simon/common/python/include/'
+include_path = '/Users/azuleta/common/python/include/'
 sys.path.append(include_path)
 from ImUtils.Resamp import gridding
 

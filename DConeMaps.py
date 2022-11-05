@@ -17,9 +17,9 @@ from time import gmtime,strftime
 #import matplotlib.colors as colors
 
 
-include_path='/home/simon/common/python/include/'
+include_path='/home/azuleta/common/python/include/'
 sys.path.append(include_path)
-import ConeRot.funcs_DConeMaps 
+import ConeRot_local.funcs_DConeMaps 
 
 
 class Model():
