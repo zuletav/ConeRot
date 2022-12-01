@@ -169,8 +169,6 @@ S = MasterDConeMaps.Setup(
     DoMerid_fixPAinc=options.DoMerid,
     ClearWorkDir=ClearWorkDir,
     DoExec=DoExec,  # Execute the full optimization
-    DoFixOrient=
-    RunMaster,  # Execute the restricted optimization, with fixed orientation
     DumpAllFitsFiles=False,
     #x_center=0.002,  # from the continuum
     #y_center=0.012,
