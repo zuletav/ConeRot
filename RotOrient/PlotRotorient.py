@@ -101,6 +101,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         DoFixIncPA=True
     else:
         print("not found, no workdir_fixincPA",workdir_fixincPA)
+        DoFixIncPA=False
 
     VisibleXaxis_V_z=False
     VisibleXaxis_V_R=True
@@ -286,7 +287,7 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
             allradspsi=allradspsiMCMC
 
         else:
-            [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi] = proflist
+            [r1s, r2s, rregions, incs, psis, PAs, allradsPA, allradsinc, allradspsi, vsys] = proflist
 
     
         if ForceGlobalOrient:
@@ -503,8 +504,11 @@ def execfig(workdir, filename_source, bmaj=0.083, distance=101.50, a_min=-1,a_ma
         if DoFixIncPA:
             hhs_fixincPA=np.interp(rrs_fixincPA,rregions_fixincPA,np.tan(psis_fixincPA*np.pi/180.))
     else:
-        hhs_fixincPA=np.tan(allradspsi_fixincPA*np.pi/180.)*np.ones(rrs_fixincPA.shape)
-
+        if DoFixIncPA:
+            hhs_fixincPA=np.tan(allradspsi_fixincPA*np.pi/180.)*np.ones(rrs_fixincPA.shape)
+        else:
+            hhs=np.tan(allradspsi*np.pi/180.)*np.ones(rrs.shape)
+            
     if GlobalOrientProf:
         correct4midplane = ( (1. + hhs**2)**(3./4.) )
         v_Phi_prof_mid = v_Phi_prof * correct4midplane
