@@ -207,7 +207,7 @@ def load(workdir, FixPAInc=False, RunMCMC=False):
                         allradsPA = 0.
                     matches = re.search("inc-> (.*) $", aline)
                     if (matches):
-                        allradsinc = float(matches.group(1))
+                        allradsinc = float(matches.group(1)) * 180. / np.pi
                     else:
                         allradsinc = 0.
 
@@ -215,9 +215,27 @@ def load(workdir, FixPAInc=False, RunMCMC=False):
             if AllRadsMCMC:
                 matches = re.search("^PA-> (.*) inc-> (.*) tanpsi-> (.*) $",
                                     aline)
-                allradsPAMCMC = float(matches.group(1))
-                allradsincMCMC = float(matches.group(2)) * 180. / np.pi
-                allradstanpsiMCMC = float(matches.group(3))
+                if matches:
+                    allradsPAMCMC = float(matches.group(1))
+                    allradsincMCMC = float(matches.group(2)) * 180. / np.pi
+                    allradstanpsiMCMC = float(matches.group(3))
+                else:
+                    matches = re.search("tanpsi-> (.*) $", aline)
+                    if (matches):
+                        allradstanpsiMCMC = float(matches.group(1))
+                    else:
+                        allradstanpsiMCMC = 0.
+                    matches = re.search("inc-> (.*) $", aline)
+                    if (matches):
+                        allradsPAMCMC = float(matches.group(1))
+                    else:
+                        allradsPAMCMC = 0.
+                    matches = re.search("inc-> (.*) $", aline)
+                    if (matches):
+                        allradsincMCMC = float(matches.group(1)) * 180. / np.pi
+                    else:
+                        allradsincMCMC = 0.
+                    
                 AllRadsMCMC = False
             if "Init" in aline:
                 Init = True
