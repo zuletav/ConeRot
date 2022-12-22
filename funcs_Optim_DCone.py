@@ -162,6 +162,7 @@ def run_Minuit(M, OptimM, x, bnds, names):
 
 
 def exec_ConjGrad_1region(M, OptimM):
+    print("M.domain",M.domain)
     names = list(map((lambda x: x[0]), M.domain))
     bnds = list(map((lambda x: x[1]), M.domain))
     nvar = len(list(names))
