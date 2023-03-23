@@ -9,3 +9,7 @@ Nind=2.*np.pi*thisradius /(M.bmaj) # aprox number of beams at each radius
 (...) L980
 #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
 zeimage = weights*(im_polar-im_polar_av)**2/im_Npolcorr
+
+Update setup.py files to include all packages.
+
+TO DO: replace the include_path function in MasterDConeMaps.py
