@@ -1,42 +1,34 @@
 import sys
 import numpy as np
+from copy import copy
 import re
-from copy import copy, deepcopy
-import os
 from optparse import OptionParser
 
-HOME = os.environ.get('HOME')
-include_path = HOME + '/common/python/include/'
-sys.path.append(include_path)
-import ConeRot.MasterDConeMaps as MasterDConeMaps
+from ConeRot import MasterDConeMaps
 
-sourcedir = 'hydro/12CO_dgauss_commonsigma/'
+distance = 157.3 # pc GAIA 2018
+incl = 180.-28
+PAs  = 340.-180.
 
-workdir = 'work_pix2_Smom8'
-workdir = 'work_pix2_Smom8_noMerid'
+sourcedir='./model_sgauss/'
+workdir = f'work_outer_inc{incl}_PA{PAs}'
 
-sourcedir = '/strelka_ssd/simon/C8_simus/AKIRA/hydro/13CO_sgauss_12co32_planetvortex_p05J/'
-workdir = 'work_13co32_p05J_sgauss'
+title = r'HD142527 $^{12}$CO 6-5' # Title for the plot
 
-sourcedir = '/strelka_ssd/simon/C8_simus/AKIRA/hydro/12CO_sgauss_12co32_planetvortex_p10J/'
-workdir = 'work_12co32_p10J_sgauss'
-
-sourcedir = '/strelka_ssd/simon/C8_simus/AKIRA/hydro/13CO_sgauss_12co32_planetvortex_p10J/'
-workdir = 'work_13co32_p10J_sgauss'
-
-distance = 140.  #pc
-
-#a_min=0.4
-a_min = 0.3
-a_max = 1.3
-
+a_min = 0.1
+a_max = 1.
 a_min_regions = 0.15
-a_max_regions = 1.5
+a_max_regions = 0.9
+
+PA = PAs  # continuum
+inc = (incl) * np.pi / 180.
+tanpsi = -0.2
+
+# #####################################################################
+# #####################################################################
 
 a_min_plot = a_min_regions
 a_max_plot = a_max_regions
-
-######################################################################
 
 parser = OptionParser()
 parser.add_option("-r",
@@ -111,7 +103,9 @@ RunMaster = options.RunMaster
 Regions = options.Regions
 
 ######################################################################
-#RunMCMCmaster=False
+
+if re.match('^(.*)\/$', workdir):
+    workdir = m.group(1)
 
 if RunMaster:
     ClearWorkDir = True
@@ -137,65 +131,53 @@ if options.RunMCMCmaster:
 
 workdir += '/'
 
-if options.RetroGrade:
-    PA = 320. - 180.
-    inc = (180. - 30.) * np.pi / 180.
-else:
-    PA = 45. + 180.
-    inc = (33.) * np.pi / 180.
+print("workdir>>>> ", workdir)
 
 S = MasterDConeMaps.Setup(
-    filename_source=sourcedir + 'im_g_v0.fits',
-    #filename_source=sourcedir+'Smom_8.fits',
+    filename_source=sourcedir + 'im_g_v0.fits', # Check the correct cube
     filename_errormap=sourcedir + 'im_g_v0_e.fits',
     workdir=workdir,
-    #DoErrorMap=False,
-    DoErrorMap=False,
-    typicalerror=0.02,  #  km/s
-    ComputeSystVelo=True,  # best run this only once, then pass value in vsyst
-    vsyst=0.,  # 5.7454612183344285,
-    #USED VSYST= 5.76188229931048
-    #USED VSYST= 5.767168500867334
-    #Rich Teague: 5.763
-    fieldscale=1.,  #1.
-    pixscale_factor=1.0,  #6.0
+    DoErrorMap=True,
+    typicalerror=0.1,  #  km/s
+    ComputeSystVelo=False,  # best run this only once, then pass value in vsyst
+    vsyst=3.72,
+    #fieldscale=1., #1.
+    fieldscale=1.0,  #1.
+    pixscale_factor=1.0,  #3.
     unitscale=1.,
     PA=PA,
     inc=inc,
-    tanpsi=0.,
-    rangePA=50.,
-    rangeinc=15. * np.pi / 180.,
-    #rangeinc=0.1*np.pi/180.,
-    rangetanpsi=1.,
+    tanpsi=-0.2,
+    rangePA=30.,
+    rangeinc=140. * np.pi / 180.,
+    rangetanpsi=0.4,
     a_min=a_min,
     a_max=a_max,
     DoRegions=Regions,
+    RestrictAvToRadialDomain=False,
     a_min_regions=a_min_regions,
     a_max_regions=a_max_regions,
-    n_abins=10,  # 
+    n_abins=2,
     DoAccr=False,
     DoAccr_fixPAinc=False,
     DoMerid_fixPAinc=options.DoMerid,
     ClearWorkDir=ClearWorkDir,
     DoExec=DoExec,  # Execute the full optimization
-    DoFixOrient=
-    RunMaster,  # Execute the restricted optimization, with fixed orientation
     DumpAllFitsFiles=False,
-    x_center=0.,  # from the continuum
-    y_center=0.,
-    bmaj=0.091,  # arcsec
-    bmin=0.078,  # arcsec
+    #x_center=0.002,
+    #y_center=0.012,
+    x_center=0.0,
+    y_center=0.0,
+    bmaj=7.2E-5,  # arcsec
+    bmin=5.7E-5,  # arcsec
     DoConjGrad=True,
     DoMinuit=False,  # BROKEN 
     DoFarSideOnly=options.DoFarSideOnly,
     RunMCMC=RunMCMCmaster,
     RecoverMCMC=RunMCMCmaster,  # RunMCMC
-    n_cores_MCMC=30,  #30
-    #Nit=300,
-    Nit=200,
-    #burn_in=150,
-    burn_in=100,
-    #nwalkers= 10, #leave as default
+    n_cores_MCMC=4,
+    Nit=10,
+    burn_in=10,
     exec_master_script=exec_master_script)
 
 S.domain = (('PA', (S.PA - S.rangePA / 2., S.PA + S.rangePA / 2.)),
@@ -207,61 +189,124 @@ if S.DoExec:
     S.Run()
 
 SFixOrient = copy(S)
-if S.DoFixOrient:
-    SFixOrient.Nit = 100
-    SFixOrient.burn_in = 50
-    SFixOrient.RunFixOrient(ForceGlobalOrient=options.ForceOrient,
-                            Force_allradsPA=S.PA,
-                            Force_allradsinc=S.inc)
+if Regions:
+    if S.DoFixOrient:
+        SFixOrient.RunFixOrient(ForceGlobalOrient=options.ForceOrient,
+                                Force_allradsPA=S.PA,
+                                Force_allradsinc=S.inc)
+    else:
+        SFixOrient.workdir = re.sub('/$', '_fixPAinc/', SFixOrient.workdir)
+        
+
+from ConeRot.RotOrient import PlotRotorient
+
+rgaps = False
+
+if Regions:
+    vsys = PlotRotorient.execfig(
+        S.workdir,
+        SFixOrient.filename_source,
+        distance=distance,
+        ForceGlobalOrient=options.ForceOrient,
+        Force_allradsPA=S.PA,
+        Force_allradsinc=S.inc,
+        WithComparData=False,
+        WithComparRadTWind=False,
+        PlotVarPAinc=PlotVarPAinc,
+        rgaps=rgaps,
+        title=title,
+        DoAUBar=True,
+        alabel='',
+        PlotVarOrient=True)
+
+    vsys = PlotRotorient.execfig(
+        S.workdir,
+        SFixOrient.filename_source,
+        distance=distance,
+        ForceGlobalOrient=options.ForceOrient,
+        Force_allradsPA=S.PA,
+        Force_allradsinc=S.inc,
+        WithComparData=False,
+        WithComparRadTWind=False,
+        PlotVarPAinc=PlotVarPAinc,
+        rgaps=rgaps,
+        title=title,
+        DoAUBar=False,
+        alabel='',
+        PlotVarOrient=True)
+    print("returned from execfig vsys", vsys)
+
 else:
-    SFixOrient.workdir = re.sub('/$', '_fixPAinc/', SFixOrient.workdir)
-
-import ConeRot.RotOrient.PlotRotorient
-
-vsys = ConeRot.RotOrient.PlotRotorient.execfig(
-    S.workdir,
-    SFixOrient.filename_source,
-    distance=distance,
-    ForceGlobalOrient=options.ForceOrient,
-    Force_allradsPA=S.PA,
-    Force_allradsinc=S.inc,
-    PlotVarPAinc=PlotVarPAinc,
-    title='',
-    alabel='')
-
-vsys = ConeRot.RotOrient.PlotRotorient.execfig(
-    S.workdir,
-    SFixOrient.filename_source,
-    distance=distance,
-    ForceGlobalOrient=options.ForceOrient,
-    Force_allradsPA=S.PA,
-    Force_allradsinc=S.inc,
-    PlotVarPAinc=PlotVarPAinc,
-    title='',
-    alabel='',
-    PlotVarOrient=False)
+    vsys = PlotRotorient.execfig(
+        S.workdir,
+        SFixOrient.filename_source,
+        distance=distance,
+        ForceGlobalOrient=options.ForceOrient,
+        Force_allradsPA=S.PA,
+        Force_allradsinc=S.inc,
+        WithComparData=False,
+        WithComparRadTWind=False,
+        PlotVarPAinc=PlotVarPAinc,
+        VarOrient=False,
+        a_min=a_min_plot,
+        a_max=a_max_plot,
+        Plot_vRot_Global=True,
+        Plot_vRot_VarOrient=False,
+        Plot_vRot_VarOrient_FixIncPA=False,
+        rgaps=rgaps)
 
 SFixOrient.vsyst = vsys
+S.vsyst = vsys
 
 import ConeRot.KineSummaryCompact
 
-ConeRot.KineSummaryCompact.exec_summary_allrads(SFixOrient.workdir,
-                                                SFixOrient.filename_source,
-                                                vsyst=SFixOrient.vsyst,
-                                                UseScatter=False)
-ConeRot.KineSummaryCompact.exec_summary_allrads(SFixOrient.workdir,
-                                                SFixOrient.filename_source,
-                                                vsyst=SFixOrient.vsyst,
-                                                UseScatter=True)
+file_continuum = False
 
-#file_continuum='/home/simon/rsynccommon/ppdisks/HD163296/DSHARP_continuum/polarmaps/polarmaps_modout_default/mod_out_z_stretched.fits'
+ConeRot.KineSummaryCompact.exec_summary_allrads(SFixOrient.workdir,
+                                                SFixOrient.filename_source,
+                                                file_continuum=file_continuum,
+                                                vsyst=S.vsyst,
+                                                AllRads=False,
+                                                a_min=a_min_plot,
+                                                a_max=a_max_plot)
+
+ConeRot.KineSummaryCompact.exec_summary_allrads(SFixOrient.workdir,
+                                                SFixOrient.filename_source,
+                                                file_continuum=file_continuum,
+                                                vsyst=S.vsyst,
+                                                AllRads=True,
+                                                a_min=a_min_plot,
+                                                a_max=a_max_plot)
+
+file_continuum = False
 
 ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,
                                                SFixOrient.filename_source,
-                                               vsyst=SFixOrient.vsyst,
+                                               file_continuum=file_continuum,
+                                               vsyst=S.vsyst,
+                                               AllRads=False,
+                                               a_min=a_min_plot,
+                                               a_max=a_max_plot,
+                                               Zoom=True,
+                                               side=1.0)
+
+ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,
+                                               SFixOrient.filename_source,
+                                               file_continuum=file_continuum,
+                                               vsyst=S.vsyst,
+                                               AllRads=True,
+                                               a_min=a_min_plot,
+                                               a_max=a_max_plot,
+                                               Zoom=False,
+                                               side=1.0)
+
+ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,
+                                               SFixOrient.filename_source,
+                                               file_continuum=file_continuum,
+                                               vsyst=S.vsyst,
+                                               AllRads=True,
+                                               a_min=a_min_plot,
+                                               a_max=a_max_plot,
+                                               Zoom=True,
+                                               side=1.0,
                                                UseScatter=False)
-
-#ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,SFixOrient.filename_source,vsyst=SFixOrient.vsyst,Zoom=True)
-
-#ConeRot.KineSummaryCompact.exec_summary_faceon(SFixOrient.workdir,SFixOrient.filename_source,file_continuum=file_continuum,vsyst=S.vsyst,Zoom=True,side=1.2)
-#KineSummaryCompact.exec_summary_faceon(workdir,filename_source,file_continuum=file_continuum,vsyst=5.768)
