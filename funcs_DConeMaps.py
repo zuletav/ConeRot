@@ -622,8 +622,7 @@ def exec_conicpolar_expansions(M):
     # take azimuthal averages on polar maps
 
     weights = im_polarw.copy()
-    #im_Npolcorr = np.ones(im_polarw.shape, dtype=float32)
-    #im_Npolcorr =  hdrpolar['CDELT1']   #np.ones(im_polarw.shape)
+    im_Npolcorr = np.ones(im_polarw.shape, dtype=float32)
 
     if (np.any(weights < 0.)):
         print("min / max:", np.min(weights), np.max(weights))
@@ -648,9 +647,9 @@ def exec_conicpolar_expansions(M):
     MeridAmps = np.double(np.zeros(len(rrs)))
     sMeridAmps = np.double(np.zeros(len(rrs)))
 
-    im_Npolcorr = M.bmaj / (rrs * hdrpolar['CDELT1'] * 3600. * np.pi / 180.
-                            )  #np.ones(im_polarw.shape)
-    im_Npolcorr[(im_Npolcorr < 1.)] = 1
+    #im_Npolcorr = M.bmaj / (rrs * hdrpolar['CDELT1'] * 3600. * np.pi / 180.
+    #                        )  #np.ones(im_polarw.shape)
+    #im_Npolcorr[(im_Npolcorr < 1.)] = 1
 
     vsysts = np.zeros(hdrpolar['NAXIS2'])
 
