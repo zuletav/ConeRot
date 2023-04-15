@@ -622,7 +622,8 @@ def exec_conicpolar_expansions(M):
     # take azimuthal averages on polar maps
 
     weights = im_polarw.copy()
-    im_Npolcorr = np.ones(im_polarw.shape, dtype=float32)
+    #im_Npolcorr = np.ones(im_polarw.shape, dtype=float32)
+    im_Npolcorr = np.ones(im_polarw.shape)
 
     if (np.any(weights < 0.)):
         print("min / max:", np.min(weights), np.max(weights))
@@ -646,10 +647,6 @@ def exec_conicpolar_expansions(M):
     sAccrAmps = np.double(np.zeros(len(rrs)))
     MeridAmps = np.double(np.zeros(len(rrs)))
     sMeridAmps = np.double(np.zeros(len(rrs)))
-
-    #im_Npolcorr = M.bmaj / (rrs * hdrpolar['CDELT1'] * 3600. * np.pi / 180.
-    #                        )  #np.ones(im_polarw.shape)
-    #im_Npolcorr[(im_Npolcorr < 1.)] = 1
 
     vsysts = np.zeros(hdrpolar['NAXIS2'])
 
@@ -843,44 +840,43 @@ def exec_conicpolar_expansions(M):
 
     else:
 
-        zeimage = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
-        deltaChi2 = np.sum(zeimage, axis=1)
+        chi2image = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
+        chi2image = np.nan_to_num(chi2image)
+        deltaChi2 = np.sum(chi2image, axis=1)
 
-        #zeimage = np.nan_to_num(zeimage)
-        #
-        #if (np.any(weights < 0.)):
-        #    sys.exit("negative weights!!!!")
-        #if (np.any(zeimage < 0.)):
-        #    sys.exit("negative chi2!!!!")
-        #
-        #deltaimage = im_polar - im_polar_av
-        #velodev_med = np.sqrt(np.median(deltaimage[ia_min:ia_max, :]**2))
-        #velodev_std = np.std(deltaimage[ia_min:ia_max, :])
-        #velodev_std_vec = np.std(deltaimage, axis=1)
-        #velodev_std2 = np.std(velodev_std_vec[ia_min:ia_max])
-        #
+        if (np.any(weights < 0.)):
+            sys.exit("negative weights!!!!")
+        if (np.any(chi2image < 0.)):
+            sys.exit("negative chi2!!!!")
+
+        deltaimage = im_polar - im_polar_av
+        velodev_med = np.sqrt(np.median(deltaimage[ia_min:ia_max, :]**2))
+        velodev_std = np.std(deltaimage[ia_min:ia_max, :])
+        velodev_std_vec = np.std(deltaimage, axis=1)
+        velodev_std2 = np.std(velodev_std_vec[ia_min:ia_max])
+
         #varim = deltaimage**2 * weights
         #varvec = np.sum(varim, axis=1)
         #wvec = np.sum(weights, axis=1)
         #mask = (wvec < 1E-10)
-        #vec_w_var = (varvec / wvec)
+        #vec_w_var = varvec  # / wvec)
         #vec_w_var[mask] = 0.
-        #vec_median_w = np.median(weights, axis=1)
-        #vec_typicalerror = np.sqrt(1. / vec_median_w)
-        #deltaChi2 = (vec_w_var / vec_typicalerror**2.)
+        # #vec_median_w = np.median(weights, axis=1)
+        # #vec_typicalerror = np.sqrt(1. / vec_median_w)
+        # deltaChi2 = vec_w_var  # / vec_typicalerror**2.)
 
-        ##colapsed_weights=np.sum(weights,axis=1)
-        ##dispv_Phi_prof=colapsed_weights.copy()
-        ##mask=(colapsed_weights > 1E-10)
-        ##dispv_Phi_prof[mask]=np.sqrt(deltaChi2[mask]/colapsed_weights[mask])  # << weighted dispersion of residuals
-        ##dispv_Phi_prof[np.invert(mask)]=np.nan
-        ### dispv_Phi_prof = np.sqrt(deltaChi2/colapsedweights)
-        #
-        ##sv_Phi_prof=dispv_Phi_prof.copy()
-        ##cosi=np.cos(M.inc)
-        ##Nind=2.*np.pi*rrs * cosi /(M.bmaj) # number of beams at each radius
-        ##sv_Phi_prof=sv_Phi_prof/np.sqrt(Nind)
-        ##sv_Phi_prof=np.nan_to_num(sv_Phi_prof)
+        #colapsed_weights=np.sum(weights,axis=1)
+        #dispv_Phi_prof=colapsed_weights.copy()
+        #mask=(colapsed_weights > 1E-10)
+        #dispv_Phi_prof[mask]=np.sqrt(deltaChi2[mask]/colapsed_weights[mask])  # << weighted dispersion of residuals
+        #dispv_Phi_prof[np.invert(mask)]=np.nan
+        ## dispv_Phi_prof = np.sqrt(deltaChi2/colapsedweights)
+
+        #sv_Phi_prof=dispv_Phi_prof.copy()
+        #cosi=np.cos(M.inc)
+        #Nind=2.*np.pi*rrs * cosi /(M.bmaj) # number of beams at each radius
+        #sv_Phi_prof=sv_Phi_prof/np.sqrt(Nind)
+        #sv_Phi_prof=np.nan_to_num(sv_Phi_prof)
 
     if (M.DoMerid):
         M.RadialProfile = [

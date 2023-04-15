@@ -7,6 +7,7 @@ import scipy.optimize as op
 from multiprocessing import Pool
 from iminuit import Minuit
 import matplotlib.pyplot as plt
+import emcee
 
 include_path = '/home/simon/common/python/include/'
 sys.path.append(include_path)
@@ -162,7 +163,7 @@ def run_Minuit(M, OptimM, x, bnds, names):
 
 
 def exec_ConjGrad_1region(M, OptimM):
-    print("M.domain",M.domain)
+    print("M.domain", M.domain)
     names = list(map((lambda x: x[0]), M.domain))
     bnds = list(map((lambda x: x[1]), M.domain))
     nvar = len(list(names))
@@ -289,9 +290,6 @@ def exec_emcee(M, result_ml, RunMCMC, OptimM):
 
     print("init for emcee :", result_ml)
 
-    import emcee
-    #nit=3000
-    print("in exec_emcee with RunMCMC=", RunMCMC)
     if RunMCMC:
         print(bnds)
         print("funcs_Optim_DCone:  calling  emcee  with Nit", Nit,
@@ -430,7 +428,7 @@ def proc_1region(iregion):
     sample_theta = list(range(nvar))
     for iparam in list(range(nvar)):
         sample_theta[iparam] = getattr(M, names[iparam])
-    M.iregion=iregion
+    M.iregion = iregion
     x = np.array(sample_theta)
 
     amesh = M.a_min_regions + np.arange(M.n_abins + 1) * (
@@ -545,14 +543,21 @@ def proc_1region(iregion):
         ]
     else:
         return [
-            iregion, logstring, M.Hduregion.data, M.Hdudiff.data,
-            M.Hdumoddrot.data, M.RadialProfile, M.a_min, M.a_max,
-            M.Hdudiff_faceon.data, M.Hduresamp_faceon.data,
-            M.Hduregion_faceon.data, 
-            M.Hdurrs.data, 
-            M.Hdurrs_faceon.data, 
-            M.Hduphis.data, 
-            M.Hduphis_faceon.data, 
+            iregion,
+            logstring,
+            M.Hduregion.data,
+            M.Hdudiff.data,
+            M.Hdumoddrot.data,
+            M.RadialProfile,
+            M.a_min,
+            M.a_max,
+            M.Hdudiff_faceon.data,
+            M.Hduresamp_faceon.data,
+            M.Hduregion_faceon.data,
+            M.Hdurrs.data,
+            M.Hdurrs_faceon.data,
+            M.Hduphis.data,
+            M.Hduphis_faceon.data,
         ]
 
 
@@ -631,7 +636,7 @@ def exec_Regions(M, OptimM):
         cube_im_diff_faceon[iregion, :, :] = aregionoutput[8]
         cube_resamp_faceon[iregion, :, :] = aregionoutput[9]
         cube_regions_faceon[iregion, :, :] = aregionoutput[10]
-        
+
         cube_rrs[iregion, :, :] = aregionoutput[11]
         cube_rrs_faceon[iregion, :, :] = aregionoutput[12]
         cube_phis[iregion, :, :] = aregionoutput[13]
@@ -715,19 +720,15 @@ def exec_Regions(M, OptimM):
     pf.writeto(fileout_cubediff, cube_imdrotdiff, hdr_c, overwrite=True)
     pf.writeto(fileout_cuberegions, cube_regions, hdr_c, overwrite=True)
 
-
-    
     im_norm = np.sum(cube_regions, axis=0)
     mask = (np.fabs(im_norm) < 0.01)
     im_norm[mask] = 0.01
-
 
     imrrs = np.sum(cube_rrs * cube_regions, axis=0) / im_norm
     imrrs[mask] = 0.
     imphis = np.sum(cube_phis * cube_regions, axis=0) / im_norm
     imphis[mask] = 0.
 
-    
     imdrotdiff = np.sum(cube_imdrotdiff * cube_regions, axis=0) / im_norm
     imdrotdiff[mask] = 0.
 
@@ -750,15 +751,12 @@ def exec_Regions(M, OptimM):
     imresamp_faceon[mask_fon] = 0.
 
     imrrs_faceon = np.sum(cube_rrs_faceon * cube_regions_faceon,
-                             axis=0) / im_norm_faceon
+                          axis=0) / im_norm_faceon
     imrrs_faceon[mask_fon] = 0.
 
     imphis_faceon = np.sum(cube_phis_faceon * cube_regions_faceon,
-                             axis=0) / im_norm_faceon
+                           axis=0) / im_norm_faceon
     imphis_faceon[mask_fon] = 0.
-
-    
-
 
     if M.DoDCone:
         imDConemoddrot = np.sum(cube_imDConemoddrot * cube_regions,
@@ -781,13 +779,11 @@ def exec_Regions(M, OptimM):
                                filename_fullim)
     pf.writeto(fileout_immoddrot, immoddrot, hdr_c, overwrite=True)
 
-
     fileout_imrrs = re.sub('fullim.fits', 'rrs.fits', filename_fullim)
     pf.writeto(fileout_imrrs, imrrs, hdr_c, overwrite=True)
     fileout_imphis = re.sub('fullim.fits', 'phis.fits', filename_fullim)
     pf.writeto(fileout_imphis, imphis, hdr_c, overwrite=True)
 
-    
     fileout_diff_faceon = re.sub('fullim.fits', 'allrads_diff_faceon.fits',
                                  filename_fullim)
     pf.writeto(fileout_diff_faceon, imdiff_faceon, hdr_c, overwrite=True)
@@ -798,12 +794,13 @@ def exec_Regions(M, OptimM):
                                    filename_fullim)
     pf.writeto(fileout_imnorm_faceon, im_norm_faceon, hdr_c, overwrite=True)
 
-    fileout_imrrs_faceon = re.sub('fullim.fits', 'rrs_faceon.fits', filename_fullim)
+    fileout_imrrs_faceon = re.sub('fullim.fits', 'rrs_faceon.fits',
+                                  filename_fullim)
     pf.writeto(fileout_imrrs_faceon, imrrs_faceon, hdr_c, overwrite=True)
-    fileout_imphis_faceon = re.sub('fullim.fits', 'phis_faceon.fits', filename_fullim)
+    fileout_imphis_faceon = re.sub('fullim.fits', 'phis_faceon.fits',
+                                   filename_fullim)
     pf.writeto(fileout_imphis_faceon, imphis_faceon, hdr_c, overwrite=True)
 
-    
     if M.DoErrorMap:
         im_c_w = M.Hduwcentered.data  # _c -> centered
     else:
