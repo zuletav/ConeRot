@@ -1,76 +1,145 @@
 import sys
 import os
 import os.path
+import argparse
 import numpy as np
-from astropy.io import fits as pf
 import re
 
-include_path = '/home/simon/common/python/include/'
-sys.path.append(include_path)
-import ConeRot.DConeMaps as DConeMaps
+from ConeRot.src import DConeMaps
+from ConeRot.src import Optim_DCone
+
 from ImUtils.FixHeads import fixhead_3
-import ConeRot.Optim_DCone as Optim_DCone
+
+CURR_DIR = os.path.dirname(os.path.abspath(__file__))
+# sys.path.append(CURR_DIR)
+# PARENT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
+# sys.path.append(PARENT_DIR)
+
+
+def gen_scipt_options_argparse():
+    parser = argparse.ArgumentParser(
+        prog='drive_ConeRot', description='script to launch ConeRot functions')
+
+    parser.add_argument("-r",
+                        "--retrograde",
+                        action="store_true",
+                        dest="RetroGrade",
+                        default=False,
+                        help="toggle retrograde orientation (RT trials only)")
+    parser.add_argument("-f",
+                        "--forceorient",
+                        action="store_true",
+                        dest="ForceOrient",
+                        default=False,
+                        help="toggle force input orientation in FixPAinc run")
+    parser.add_argument("-F",
+                        "--farside",
+                        action="store_true",
+                        dest="DoFarSideOnly",
+                        default=False,
+                        help="toggle far side only")
+    parser.add_argument("-M",
+                        "--MCMC",
+                        action="store_true",
+                        dest="RunMCMCmaster",
+                        default=False,
+                        help="toggle MCMC optim")
+    parser.add_argument("-d",
+                        "--dry-run",
+                        action="store_false",
+                        dest="RunMaster",
+                        default=True,
+                        help="toggle dry run")
+
+    parser.add_argument(
+        "-o",
+        "--NoVarOrient",
+        action="store_false",
+        dest="DoVarOrient",
+        default=True,
+        help="no variable PA, inc profile, use with --forceorient")
+
+    parser.add_argument("-R",
+                        "--Regions",
+                        action="store_true",
+                        dest="Regions",
+                        default=False,
+                        help="use regions")
+    parser.add_argument("-m",
+                        "--Merid",
+                        action="store_true",
+                        dest="DoMerid",
+                        default=False,
+                        help="use meridional flows")
+
+    return parser
+
 
 
 class Setup():
-    def __init__(self,
-                 filename_source='',
-                 filename_errormap='',
-                 workdir='',
-                 DoErrorMap=False,
-                 typicalerror=0.1,
-                 ComputeSystVelo=False,
-                 vsyst=0.,
-                 sigma_vsyst=0., #uncertainty in the inferred value of vsyst
-                 fieldscale=1.,
-                 pixscale_factor=1.,
-                 unitscale=1.,
-                 PA=0.,
-                 inc=1.,
-                 tanpsi=0.1,
-                 rangePA=10.,
-                 rangeinc=20.*np.pi/180.,
-                 rangetanpsi=0.4,
-                 ClearWorkDir=True,
-                 a_min=1.0,
-                 a_max=2.0,
-                 DoRegions=False,
-                 RestrictAvToRadialDomain=False,
-                 InheritGlobalInit=False, # to force same initial conditions for conjgrad, in all regions
-                 a_min_regions=1.0,
-                 a_max_regions=2.0,
-                 n_abins=10,
-                 DoAccr=False,
-                 DoAccr_fixPAinc=False,
-                 DoMerid=False,
-                 DoMerid_fixPAinc=False,
-                 DoExec=True,
-                 DoFixOrient=True,
-                 DumpAllFitsFiles=False,
-                 fout=False,
-                 x_center=0.,
-                 y_center=0.,
-                 bmaj=1.,
-                 bmin=1.,
-                 DoConjGrad=False,
-                 DoMinuit=False,
-                 RunMCMC=False,
-                 RecoverMCMC=False,
-                 n_cores_MCMC=10,
-                 Nit=140,
-                 burn_in=70,
-                 BlindMCMC=False, # if Falses uses conjgrad optim for init
-                 nwalkers=-1,  # <= 0 value will use defaults
-                 domain=(),
-                 RA=False,
-                 DEC=False,
-                 InjectNoise=False,
-                 DoDCone=False,
-                 InheritMumap=False,  # pass mumap from a previous orientation - used as weights in KepAmps
-                 StoreRegions=False,
-                 DoFarSideOnly=False,
-                 ExtendRegions=False,
-                 exec_master_script='exec_master.py'):
+    """
+    master object for ConeRot executions
+    """
+
+    def __init__(
+            self,
+            filename_source='',
+            filename_errormap='',
+            workdir='',
+            DoErrorMap=False,
+            typicalerror=0.1,
+            ComputeSystVelo=False,
+            vsyst=0.,
+            sigma_vsyst=0.,  #uncertainty in the inferred value of vsyst
+            fieldscale=1.,
+            pixscale_factor=1.,
+            unitscale=1.,
+            PA=0.,
+            inc=1.,
+            tanpsi=0.1,
+            rangePA=10.,
+            rangeinc=20. * np.pi / 180.,
+            rangetanpsi=0.4,
+            ClearWorkDir=True,
+            a_min=1.0,
+            a_max=2.0,
+            DoRegions=False,
+            RestrictAvToRadialDomain=False,
+            InheritGlobalInit=False,  # to force same initial conditions for conjgrad, in all regions
+            a_min_regions=1.0,
+            a_max_regions=2.0,
+            n_abins=10,
+            DoAccr=False,
+            DoAccr_fixPAinc=False,
+            DoMerid=False,
+            DoMerid_fixPAinc=False,
+            DoExec=True,
+            DoFixOrient=True,
+            DumpAllFitsFiles=False,
+            fout=False,
+            x_center=0.,
+            y_center=0.,
+            bmaj=1.,
+            bmin=1.,
+            DoConjGrad=False,
+            DoMinuit=False,
+            RunMCMC=False,
+            RecoverMCMC=False,
+            n_cores_MCMC=10,
+            Nit=140,
+            burn_in=70,
+            BlindMCMC=False,  # if Falses uses conjgrad optim for init
+            nwalkers=-1,  # <= 0 value will use defaults
+            domain=(),
+            RA=False,
+            DEC=False,
+            InjectNoise=False,
+            DoDCone=False,
+            InheritMumap=False,  # pass mumap from a previous orientation - used as weights in KepAmps
+            StoreRegions=False,
+            DoFarSideOnly=False,
+            ExtendRegions=False,
+            exec_master_script='exec_master.py'):
         """ 
         generate an instance for ConeRot 
         """
@@ -105,8 +174,7 @@ class Setup():
         os.system("mkdir " + self.workdir)
 
         os.system("rsync -va " + self.exec_master_script + " " + self.workdir)
-        os.system("tar cvfz " + self.workdir + "ball_conemaps.tgz " +
-                  include_path + "conemaps   ")
+        os.system("tar cvfz " + self.workdir + "ball_conemaps.tgz " + CURR_DIR)
 
         M = DConeMaps.Model(VerboseInit=False)
 

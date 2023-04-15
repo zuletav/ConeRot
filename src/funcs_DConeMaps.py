@@ -7,21 +7,20 @@ from scipy import ndimage
 from astropy.io import fits as pf
 import re
 from copy import deepcopy
-from astropy.wcs import WCS
-from scipy import optimize
 import time
-from time import gmtime, strftime
 
 import matplotlib as mpl
-
-mpl.use('Agg')
 import matplotlib.pyplot as plt
 from pylab import *
 import matplotlib.colors as colors
 
-include_path = '/Users/simon/common/python/include/'
-sys.path.append(include_path)
+# include_path = '/home/simon/common/python/include/'
+# sys.path.append(include_path)
 from ImUtils.Resamp import gridding
+from ImUtils.Cube2Im import slice0
+import ConeRot.src.TakeAzAv as TakeAzAv
+import ConeRot.src.ConicTransforms_numba as ConicTransforms
+# import PyVtools.Vtools as Vtools
 
 if not sys.warnoptions:
     import os, warnings
@@ -32,7 +31,7 @@ if not sys.warnoptions:
 
 
 def cartesian2conicpolar(outcoords, inputshape, origin, inc=0., tanpsi=0.):
-    """Coordinate transform for converting a polar array to Cartesian coordinates. 
+    """Coordinate transform for converting a conic polar array to Cartesian coordinates. 
     inputshape is a tuple containing the shape of the polar array. origin is a
     tuple containing the x and y indices of where the origin should be in the
     output array."""
@@ -40,7 +39,8 @@ def cartesian2conicpolar(outcoords, inputshape, origin, inc=0., tanpsi=0.):
     rindex, thetaindex = outcoords
     x0, y0 = origin
 
-    theta = float(thetaindex) * 2. * np.pi / float(inputshape[0])
+    #theta = float(thetaindex) * 2. * np.pi / float(inputshape[0])
+    theta = thetaindex * 2. * np.pi / inputshape[0]
 
     y = rindex * np.cos(theta)
 
@@ -50,7 +50,7 @@ def cartesian2conicpolar(outcoords, inputshape, origin, inc=0., tanpsi=0.):
              (height - (rindex*np.sin(theta))*np.tan(inc))*np.sin(inc)
 
     ix = -x + x0
-    iy = y + float(y0)
+    iy = y + y0
 
     return (iy, ix)
 
@@ -64,14 +64,15 @@ def cartesian2polar(outcoords, inputshape, origin, inc=0.):
     rindex, thetaindex = outcoords
     x0, y0 = origin
 
-    theta = float(thetaindex) * 2. * np.pi / float(inputshape[0] - 1.)
+    #theta = float(thetaindex) * 2. * np.pi / float(inputshape[0] - 1.)
+    theta = thetaindex * 2. * np.pi / (inputshape[0] - 1.)
 
     y = rindex * np.cos(theta)
 
     x = rindex * np.sin(theta) * np.cos(inc)
 
     ix = -x + x0
-    iy = y + float(y0)
+    iy = y + y0
 
     return (iy, ix)
 
@@ -153,66 +154,6 @@ def conicpolar2cartesian_ellipse(outcoords,
     return (rindex, thetaindex)
 
 
-#def conicpolar2cartesian_ellipse(outcoords, inputshape, origin,inc=0.,tanpsi=0.):
-#    yindex, xindex = outcoords
-#    x0, y0 = origin
-#    nx=inputshape[0]
-#    ny=inputshape[1]
-#    x = -float(xindex - x0)
-#    y = float(yindex - y0)
-#
-#    tanpsi0=tanpsi
-#
-#
-#    a=((np.tan(inc) * tanpsi0)**2-1.0)
-#    b=-2.*x*np.sin(inc)* tanpsi0/(np.cos(inc))**2
-#    c=y**2+(x**2/(np.cos(inc)**2))
-#    Delta=b**2-4.*a*c
-#    rho=(-b-np.sqrt(Delta))/(2.*a)
-#    rindex = rho
-#    if (rho == 0.):
-#        costheta = 0.
-#    else:
-#        costheta = y / rho
-#
-#
-#    #sintheta=np.sqrt( 1.- costheta**2)
-#    #if (x<0):
-#    #    sintheta*=-1
-#
-#    #xp=(rho*sintheta/np.cos(inc)) + (tanpsi0*rho  - rho*sintheta*np.tan(inc)) * np.sin(inc)
-#
-#    H1=tanpsi0*rho
-#    num= x - H1 * np.sin(inc)
-#    denom= rho * ( (1./np.cos(inc))  - np.tan(inc) * np.sin(inc))
-#    sintheta= num/ denom
-#
-#    theta=np.arccos(costheta)
-#
-#    if sintheta<0:
-#        theta = 2.*np.pi - theta
-#
-#
-#
-#    #slope=np.tan(inc)#*tanpsi0
-#
-#    #if (x<0.):
-#    #    if (x<slope*y):
-#    #        #print("theta",theta,"x",x,"y",y,"costheta",costheta)
-#
-#
-#    #if (x<0):
-#    #    #print("theta",theta,"x",x,"y",y)
-#    #    theta += np.pi
-#
-#    thetaindex = (theta * float(nx-1) / (2. * np.pi))
-#    #thetaindex = (theta * float(nx) / (np.pi))
-#
-#
-#
-#    return (rindex,thetaindex)
-
-
 def polar2cartesian(outcoords, inputshape, origin, inc=0.):
     yindex, xindex = outcoords
     x0, y0 = origin
@@ -238,59 +179,7 @@ def polar2cartesian(outcoords, inputshape, origin, inc=0.):
     return (rindex, thetaindex)
 
 
-#
-#def polar2cartesian(outcoords, inputshape, origin,inc=0.):
-#    yindex, xindex = outcoords
-#    x0, y0 = origin
-#    nx=inputshape[0]-1
-#    ny=inputshape[1]-1
-#    x = -float(xindex - x0)
-#    y = float(yindex - y0)
-#
-#    rho=np.sqrt((x**2/(np.cos(inc)**2))+y**2)
-#    rindex = rho
-#    if (rho == 0.):
-#        costheta = 0.
-#    else:
-#        costheta = y / rho
-#
-#    # theta=np.arccos(costheta)
-#    theta = np.arctan2((-x/np.cos(inc)), y)
-#    if (theta < 0):
-#        theta = theta + 2.*np.pi
-#
-#    thetaindex = (theta * float(nx) / (2. * np.pi))
-#
-#    return (rindex,thetaindex)
-
-# def exec_flatpolar(filename_fullim,hdr2,aresampim,PA,cosi):
-#     rotangle= PA - 180.
-#     #    rotangle= PA
-#     im1rot = ndimage.rotate(aresampim, rotangle, reshape=False)
-#     fileout_rotated=re.sub('fullim.fits', 'rotated.fits', filename_fullim)
-#     pf.writeto(fileout_rotated,im1rot, hdr2, overwrite=True)
-#
-#
-#     hdr3 = deepcopy(hdr2)
-#     hdr3['CDELT1']=hdr3['CDELT1']*cosi
-#     fileout_stretched=re.sub('fullim.fits', 'stretched.fits', filename_fullim)
-#     im3=np.double(gridding(fileout_rotated,hdr3))
-#     pf.writeto(fileout_stretched,im3, hdr2, overwrite=True)
-#
-#
-#     nx=hdr2['NAXIS1']
-#     ny=hdr2['NAXIS2']
-#
-#     aim_polar = sp.ndimage.geometric_transform(im3,cartesian2polar,
-#                                                order=1,
-#                                                output_shape = (im3.shape[0], im3.shape[1]),
-#                                                extra_keywords = {'inputshape':im3.shape,
-#                                                                  'origin':(((float(nx)+1.)/2.)-1.,((float(ny)+1.)/2.)-1.)})
-#
-#     return aim_polar
-
-
-def carttoconicpolar(im, inc, tanpsi):
+def carttoconicpolar_nonumba(im, inc, tanpsi):
 
     (ny, nx) = im.shape
     (i0, j0) = (((float(nx) + 1.) / 2.) - 1., ((float(ny) + 1.) / 2.) - 1.)
@@ -306,6 +195,28 @@ def carttoconicpolar(im, inc, tanpsi):
                                                   'tanpsi': tanpsi,
                                                   'origin': (i0, j0)
                                               })
+    return im_polar
+
+
+def carttoconicpolar(im, inc, tanpsi):
+
+    #(ny, nx) = im.shape
+    #im = np.float32(im)
+    #im_polar = np.zeros(im.shape, dtype=float32)
+    #xoffset_polar = np.zeros(im.shape, dtype=float32)
+    #yoffset_polar = np.zeros(im.shape, dtype=float32)
+
+    im_polar = np.zeros(im.shape)
+    xoffset_polar = np.zeros(im.shape)
+    yoffset_polar = np.zeros(im.shape)
+
+    ConicTransforms.cart2conicpolar_matrix(im,
+                                           im_polar,
+                                           xoffset_polar,
+                                           yoffset_polar,
+                                           inc=inc,
+                                           tanpsi=tanpsi)
+
     return im_polar
 
 
@@ -369,7 +280,8 @@ def polartocart(im_polar, inc):
 
 
 def exec_prep_files(M):
-
+    """Load the input FITS files prepare the input FITS files
+    """
     filename_source = M.filename_source
     workdir = M.workdir
     DumpAllFitsFiles = M.DumpAllFitsFiles
@@ -398,7 +310,7 @@ def exec_prep_files(M):
     if (hdr0['NAXIS'] > 2):
         if (M.Verbose):  #
             print("running cube2im")
-        hdu = cube2im(filename_source, False)
+        hdu = slice0(filename_source, False)
 
     im1 = hdu[0].data
     im1 = im1 * M.unitscale
@@ -421,7 +333,7 @@ def exec_prep_files(M):
         hduerr = pf.open(M.filename_errormap)
         hdrerr = hduerr[0].header
         if (hdrerr['NAXIS'] > 2):
-            hduerr = cube2im(M.filename_errormap, False)
+            hduerr = slice0(M.filename_errormap, False)
 
         imerr1 = hduerr[0].data
         imerr1 = imerr1 * M.unitscale
@@ -464,6 +376,8 @@ def exec_prep_files(M):
 
 
 def exec_grid_4center(M):
+    """prepare the input FITS files: zoom, resample, center, etc...
+    """
 
     workdir = M.workdir
     RA = M.RA
@@ -578,22 +492,14 @@ def exec_conicpolar_expansions(M):
     workdir = M.workdir
     inc = M.inc
     tanpsi = M.tanpsi
-    RA = M.RA
-    DEC = M.DEC
-    x_center = M.x_center
-    y_center = M.y_center
-    DoAzimuthalProfile = M.DoAzimuthalProfile
     PlotRadialProfile = M.PlotRadialProfile
     a_min = M.a_min
     a_max = M.a_max
     typicalerror = M.typicalerror
-    InjectNoise = M.InjectNoise
     DumpAllFitsFiles = M.DumpAllFitsFiles
-    DoDCone = M.DoDCone
-    domain = M.domain
-    fieldscale = M.fieldscale  # shrink radial field of view of polar maps by this factor
     DoAccr = M.DoAccr
     DoMerid = M.DoMerid
+    RestrictAvToRadialDomain = M.RestrictAvToRadialDomain  # set to True is faster but may lead to discontinuities in region averages.
 
     DoFarSideOnly = M.DoFarSideOnly
 
@@ -607,7 +513,6 @@ def exec_conicpolar_expansions(M):
     inbasename = os.path.basename(filename_source)
     filename_fullim = re.sub('.fits', '_fullim.fits', inbasename)
     filename_fullim = workdir + filename_fullim
-    fileout_centered = re.sub('fullim.fits', 'centered.fits', filename_fullim)
 
     if (M.DoErrorMap):
         inbasenameerr = os.path.basename(M.filename_errormap)
@@ -615,10 +520,6 @@ def exec_conicpolar_expansions(M):
         filename_fullimerr = workdir + filename_fullimerr
         filename_fullimw = re.sub('.fits', '_fullimw.fits', inbasenameerr)
         filename_fullimw = workdir + filename_fullimw
-        fileout_centerederr = re.sub('fullim.fits', 'centered.fits',
-                                     filename_fullimerr)
-        fileout_centeredw = re.sub('fullim.fits', 'wcentered.fits',
-                                   filename_fullimerr)
 
     resamp = hdu.data
     hdr2 = hdu.header
@@ -639,7 +540,6 @@ def exec_conicpolar_expansions(M):
     else:
         mumap = np.ones(resamp.shape)
 
-    #rotangle= M.PA - 180.
     rotangle = M.PA
 
     im1rot = ndimage.rotate(resamp, rotangle, reshape=False)
@@ -677,9 +577,6 @@ def exec_conicpolar_expansions(M):
 
     im_polar = carttoconicpolar(im3, inc, tanpsi)
 
-    if (DoDCone):
-        mumap_polarpos = carttoconicpolar(mumap, inc, tanpsi)
-
     nphis, nrs = im_polar.shape
     if ((nphis != nx) or (nrs != ny)):
         sys.exit("bug")
@@ -714,12 +611,14 @@ def exec_conicpolar_expansions(M):
         if (DumpAllFitsFiles):
             hdupolarw.writeto(fileout_polarw, overwrite=True)
     else:
+        # im_polarw = np.ones(im_polar.shape, dtype=float32) / typicalerror**2
         im_polarw = np.ones(im_polar.shape) / typicalerror**2
 
     ######################################################################
     # take azimuthal averages on polar maps
 
     weights = im_polarw.copy()
+    #im_Npolcorr = np.ones(im_polarw.shape, dtype=float32)
     im_Npolcorr = np.ones(im_polarw.shape)
 
     if (np.any(weights < 0.)):
@@ -727,6 +626,8 @@ def exec_conicpolar_expansions(M):
         sys.exit("negative polarweights!!")
 
     im_polar_av = np.copy(im_polar)
+    im_polar_rrs = np.zeros(im_polar.shape)
+    im_polar_phis = np.zeros(im_polar.shape)
 
     rrs = 3600. * (np.arange(hdrpolar['NAXIS2']) - hdrpolar['CRPIX2'] +
                    1.0) * hdrpolar['CDELT2'] + hdrpolar['CRVAL2']
@@ -785,306 +686,36 @@ def exec_conicpolar_expansions(M):
         if (M.Verbose):
             print("vsyst from M = ", vsyst)
 
-    RestrictAvToRadialDomain = False  # set to True is faster but may lead to discontinuities in region averages.
-    for irrs in range(len(rrs)):
-
-        KepAmps[irrs] = 0.
-        sKepAmps[irrs] = 0.
-        AccrAmps[irrs] = 0.
-        sAccrAmps[irrs] = 0.
-        MeridAmps[irrs] = 0.
-        sMeridAmps[irrs] = 0.
-        im_polar_av[irrs, :] = 0.
-        if (((irrs < ia_min) or (irrs > ia_max)) and RestrictAvToRadialDomain):
-            continue
-
-        v0_vec = im_polar[irrs, :] - vsyst
-        if (M.DoErrorMap):
-            w_vec = weights[irrs, :]
-        else:
-            w_vec = np.ones(len(v0_vec)) / typicalerror**2
-
-        mask = (w_vec < 1E-10)
-        w_vec_nozeros = w_vec
-        w_vec_nozeros[mask] = 1E-10
-        err_vec = (1.0 / np.sqrt(w_vec_nozeros))
-        err_vec[mask] = 1E20  # np.inf
-        w_vec[mask] = 0.
-
-        thisradius = rrs[irrs]  #arcsec
-        # cosi=np.cos(M.inc)
-        #Nind=2.*np.pi*thisradius * np.fabs(cosi) /(M.bmaj) # aprox number of beams at each radius
-        Nind = 2. * np.pi * thisradius / (
-            M.bmaj)  # aprox number of beams at each radius
-
-        Nsum = len(w_vec)
-        Npolcorr = Nsum / Nind
-        #print("irrs ",irrs,Nsum, Nind, Npolcorr)
-        if Npolcorr < 1:
-            Npolcorr = 1.
-        im_Npolcorr[irrs, :] = Npolcorr
-
-        if ((np.sum(w_vec) == 0.)
-                or (np.sum(w_vec * (np.cos(phis_rad))**2)**2 == 0.)):
-            KepAmp = 0.
-            sKepAmp = 1E20
-            AccrAmp = 0.
-            sAccrAmp = 1E20
-            MeridAmp = 0.
-            sMeridAmp = 1E20
-        else:
-            if (M.InheritMumap):
-                mumap_vec = mumap_polarpos[irrs, :]
-                if (DoAccr):
-                    sys.exit("Not yet programmed DoAccr with mumap")
-                else:
-                    KepAmp = np.sum(w_vec * v0_vec * mumap_vec *
-                                    np.cos(phis_rad)) / np.sum(
-                                        w_vec * mumap_vec *
-                                        (np.cos(phis_rad))**2)
-                    AccrAmp = 0.
-            else:
-                Cramer = True
-
-                if (DoMerid and Cramer):
-                    if (np.any(phis_rad < 0.)):
-                        sys.exit("negative phis_rad")
-
-                    maskphis = (phis_rad >= 0.)
-                    if DoFarSideOnly:
-                        maskphis = ((phis_rad > 0.) & (phis_rad < np.pi))
-                    subw_vec = w_vec[maskphis]
-                    subv0_vec = v0_vec[maskphis]
-                    subphis_rad = phis_rad[maskphis]
-
-                    sinphis = np.sin(subphis_rad)
-                    cosphis = np.cos(subphis_rad)
-                    a_1 = np.sum(subw_vec * cosphis**2)
-                    b_1 = np.sum(subw_vec * sinphis * cosphis)
-                    c_1 = np.sum(subw_vec * cosphis)
-                    d_1 = np.sum(subw_vec * cosphis * subv0_vec)
-                    vard_1 = np.sum(subw_vec * cosphis**2)
-                    a_2 = b_1
-                    b_2 = np.sum(subw_vec * sinphis**2)
-                    c_2 = np.sum(subw_vec * sinphis)
-                    d_2 = np.sum(subw_vec * sinphis * subv0_vec)
-                    vard_2 = np.sum(subw_vec * sinphis**2)
-                    a_3 = c_1
-                    b_3 = c_2
-                    c_3 = np.sum(subw_vec)
-                    d_3 = np.sum(subw_vec * subv0_vec)
-                    vard_3 = np.sum(subw_vec)
-
-                    detM = a_1 * (b_2 * c_3 - b_3 * c_2) - b_1 * (
-                        a_2 * c_3 - a_3 * c_2) + c_1 * (a_2 * b_3 - a_3 * b_2)
-                    if (detM == 0.):
-                        #print("singular matrix")
-                        continue
-
-                    A = (d_1 * (b_2 * c_3 - b_3 * c_2) + d_2 *
-                         (c_1 * b_3 - b_1 * c_3) + d_3 *
-                         (b_1 * c_2 - c_1 * b_2)) / detM
-                    sigmaA = np.sqrt(vard_1 *
-                                     (b_2 * c_3 - b_3 * c_2)**2 + vard_2 *
-                                     (c_1 * b_3 - b_1 * c_3)**2 + vard_3 *
-                                     (b_1 * c_2 - c_1 * b_2)**2) / detM
-
-                    B = (d_1 * (a_3 * c_2 - a_2 * c_3) + d_2 *
-                         (a_1 * c_3 - c_1 * a_3) + d_3 *
-                         (c_1 * a_2 - a_1 * c_2)) / detM
-
-                    #Bcheck = (a_1 * ( d_2 *c_3 - d_3 * c_2) - d_1 * (a_2 * c_3 - a_3 * c_2) + c_1 * (a_2 * d_3 - a_3 * d_2)) /detM
-
-                    sigmaB = np.sqrt(vard_1 *
-                                     (a_3 * c_2 - a_2 * c_3)**2 + vard_2 *
-                                     (a_1 * c_3 - c_1 * a_3)**2 + vard_3 *
-                                     (c_1 * a_2 - a_1 * c_2)**2) / detM
-
-                    C = (d_1 * (a_2 * b_3 - a_3 * b_2) + d_2 *
-                         (b_1 * a_3 - a_1 * b_3) + d_3 *
-                         (a_1 * b_2 - b_1 * a_2)) / detM
-                    sigmaC = np.sqrt(vard_1 *
-                                     (a_2 * b_3 - a_3 * b_2)**2 + vard_2 *
-                                     (b_1 * a_3 - a_1 * b_3)**2 + vard_3 *
-                                     (a_1 * b_2 - b_1 * a_2)**2) / detM
-
-                    #if (np.fabs((Bcheck-B)/B) > 1E-8) :
-                    #    print("A ",A," C" ,C)
-                    #    print("B ",B,"Bcheck",Bcheck)
-                    #    sys.exit("check algebra ")
-
-                    KepAmp = A
-                    sKepAmp = sigmaA
-
-                    AccrAmp = B
-                    sAccrAmp = sigmaB
-
-                    MeridAmp = C
-                    sMeridAmp = sigmaC
-
-                    sAccrAmp *= np.sqrt(Npolcorr)
-                    sKepAmp *= np.sqrt(Npolcorr)
-                    sMeridAmp *= np.sqrt(Npolcorr)
-                elif (DoMerid):
-                    sum_w = np.sum(w_vec)
-                    sum_wv0 = np.sum(w_vec * v0_vec)
-                    sum_wsinphi = np.sum(w_vec * np.sin(phis_rad))
-                    sum_wcosphi = np.sum(w_vec * np.cos(phis_rad))
-                    sinphis = np.sin(phis_rad)
-                    cosphis = np.cos(phis_rad)
-                    subA_num = (np.sum(w_vec * sinphis**2 -
-                                       w_vec * sinphis * sum_wsinphi / sum_w) /
-                                np.sum(w_vec * sinphis * cosphis -
-                                       w_vec * cosphis * sum_wsinphi / sum_w))
-
-                    A_num = (
-                        np.sum(v0_vec * w_vec * sinphis -
-                               w_vec * sinphis * sum_wv0 / sum_w) -
-                        subA_num * np.sum(v0_vec * w_vec * cosphis -
-                                          w_vec * cosphis * sum_wv0 / sum_w))
-
-                    subA_denom1_num1 = np.sum(w_vec * cosphis**2 - w_vec *
-                                              cosphis * sum_wcosphi / sum_w)
-                    subA_denom1_denom1 = np.sum(w_vec * cosphis * sinphis -
-                                                w_vec * cosphis * sum_wsinphi /
-                                                sum_w)
-
-                    A_denom = (np.sum((w_vec * sinphis * cosphis -
-                                       w_vec * sinphis * sum_wcosphi / sum_w) -
-                                      (w_vec * sinphis**2 -
-                                       w_vec * sinphis * sum_wsinphi / sum_w) *
-                                      subA_denom1_num1 / subA_denom1_denom1))
-
-                    A = A_num / A_denom
-
-                    varA_num = np.sum(
-                        sinphis**2 * w_vec +
-                        w_vec**2 * sinphis**2 / sum_w) + subA_num**2 * np.sum(
-                            cosphis**2 * w_vec + w_vec**2 * cosphis**2 / sum_w)
-                    sigma_A = np.sqrt(varA_num / A_denom**2)
-
-                    B_denom = np.sum(w_vec * cosphis * sinphis -
-                                     w_vec * cosphis * sum_wsinphi / sum_w)
-                    subB_num = np.sum(w_vec * cosphis**2 -
-                                      w_vec * cosphis * sum_wcosphi / sum_w)
-                    B = ((np.sum(v0_vec * w_vec * cosphis - w_vec * cosphis *
-                                 sum_wv0 / sum_w) - A * subB_num) / B_denom)
-                    varB = (np.sum(w_vec * cosphis**2 +
-                                   w_vec**2 * cosphis**2 / sum_w) +
-                            sigma_A**2 * subB_num**2) / B_denom**2
-                    sigma_B = np.sqrt(varB)
-
-                    C_denom = sum_w * abs(np.cos(M.inc))
-                    C = np.sum(w_vec *
-                               (v0_vec - A * cosphis - B * sinphis)) / C_denom
-
-                    varC = np.sum(w_vec**2 *
-                                  (err_vec**2 + sigma_A**2 * cosphis**2 +
-                                   sigma_B**2 + sinphis**2)) / C_denom**2
-                    sigma_C = np.sqrt(varC)
-
-                    KepAmp = A
-                    sKepAmp = sigma_A
-
-                    AccrAmp = B
-                    sAccrAmp = sigma_B
-
-                    MeridAmp = C
-                    sMeridAmp = sigma_C
-
-                    sAccrAmp *= np.sqrt(Npolcorr)
-                    sKepAmp *= np.sqrt(Npolcorr)
-                    sMeridAmp *= np.sqrt(Npolcorr)
-
-                elif (DoAccr):
-                    subsum1 = np.sum(
-                        w_vec * v0_vec * np.cos(phis_rad)) / np.sum(
-                            w_vec * (np.cos(phis_rad))**2)
-                    varsubsum1 = np.sum(
-                        (np.sqrt(w_vec) * np.cos(phis_rad)) /
-                        np.sum(w_vec * (np.cos(phis_rad))**2)**2)
-                    numerator = np.sum(w_vec * np.sin(phis_rad) *
-                                       (v0_vec - np.cos(phis_rad) * subsum1))
-                    #dum1=w_vec**2 * np.sin(phis_rad)**2
-                    ##if ((~np.isfinite(varsubsum1)).any()):
-                    ##    print("varsubsum1  bad values")
-                    #dum2=np.cos(phis_rad)**2 * varsubsum1
-                    #dum3=((err_vec)**2 + dum2)
-                    #varnumerator=np.sum(dum1*dum3)
-                    varnumerator = np.sum(
-                        w_vec**2 * np.sin(phis_rad)**2 *
-                        ((err_vec)**2 + np.cos(phis_rad)**2 * varsubsum1))
-                    subsum2 = np.sum(
-                        w_vec * np.sin(phis_rad) * np.cos(phis_rad)) / np.sum(
-                            w_vec * (np.cos(phis_rad))**2)
-                    denom = np.sum(w_vec * ((np.sin(phis_rad))**2 - subsum2))
-                    AccrAmp = numerator / denom
-                    sAccrAmp = np.sqrt(varnumerator) / denom
-                    KepAmp = np.sum(
-                        w_vec * (v0_vec - AccrAmp * np.sin(phis_rad)) *
-                        np.cos(phis_rad)) / np.sum(w_vec *
-                                                   (np.cos(phis_rad))**2)
-
-                    sKdenom = np.sum(w_vec * (np.cos(phis_rad))**2)
-                    varKnum = np.sum(
-                        w_vec**2 *
-                        (err_vec**2 + sAccrAmp**2 * np.sin(phis_rad)**2) *
-                        np.cos(phis_rad)**2)
-
-                    sKnum = np.sqrt(varKnum)
-
-                    sKepAmp = sKnum / sKdenom
-
-                    #print("sKepAmp>",rrs[irrs],KepAmp, varKnum, sKnum,sKdenom, sKepAmp, sAccrAmp)
-
-                    sAccrAmp *= np.sqrt(Npolcorr)
-                    sKepAmp *= np.sqrt(Npolcorr)
-                    MeridAmp = 0.
-                    sMeridAmp = 1E20
-
-                else:
-                    denom = np.sum(w_vec * (np.cos(phis_rad))**2)
-                    numerator = np.sum(w_vec * v0_vec * np.cos(phis_rad))
-                    KepAmp = numerator / denom
-
-                    sdenom = np.sqrt(np.sum(w_vec * (np.cos(phis_rad))**2))
-                    sKepAmp = 1. / sdenom
-
-                    #print( "bmaj = ",M.bmaj, " thisradius  ",thisradius, " inc  ", M.inc ,"Nind ",Nind," Ncorr ",Ncorr, " \n")
-                    sKepAmp *= np.sqrt(Npolcorr)
-
-                    AccrAmp = 0.
-                    sAccrAmp = 1E20
-                    MeridAmp = 0.
-                    sMeridAmp = 1E20
-
-        # else:
-        # v0_vec=im_polar[irrs,:]-vsyst
-        # KepAmp = np.sum(v0_vec * np.cos(phis_rad)) / np.sum((np.cos(phis_rad))**2)
-
-        if (M.Verbose and (KepAmp < 0.) and (irrs == int(len(rrs) / 4.))):
-            print("KepAmp negative, wrong PA: KepAmp=", KepAmp, " PA: ", M.PA,
-                  " inc", M.inc * np.pi / 180., "deg  tanpsi", tanpsi)
-            print((np.array(zip(v0_vec, np.cos(phis_rad)))))
-
-        KepAmps[irrs] = KepAmp
-        sKepAmps[irrs] = sKepAmp
-        AccrAmps[irrs] = AccrAmp
-        sAccrAmps[irrs] = sAccrAmp
-        MeridAmps[irrs] = MeridAmp
-        sMeridAmps[irrs] = sMeridAmp
-
-        if (DoMerid):
-            # v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad) * MeridAmp*np.cos(M.inc)
-            v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(
-                phis_rad) + MeridAmp
-            im_polar_av[irrs, :] = v0_vec_av + vsyst
-        elif (DoAccr):
-            v0_vec_av = KepAmp * np.cos(phis_rad) + AccrAmp * np.sin(phis_rad)
-            im_polar_av[irrs, :] = v0_vec_av + vsyst
-        else:
-            v0_vec_av = KepAmp * np.cos(phis_rad)
-            im_polar_av[irrs, :] = v0_vec_av + vsyst
+    TakeAzAv.exec_av(M.DoErrorMap,
+                     M.bmaj,
+                     M.InheritMumap,
+                     M.Verbose,
+                     M.PA,
+                     M.inc,
+                     M.tanpsi,
+                     rrs,
+                     phis_rad,
+                     im_polar,
+                     KepAmps,
+                     sKepAmps,
+                     AccrAmps,
+                     sAccrAmps,
+                     MeridAmps,
+                     sMeridAmps,
+                     im_polar_av,
+                     im_polar_rrs,
+                     im_polar_phis,
+                     ia_min,
+                     ia_max,
+                     im_Npolcorr,
+                     vsyst=vsyst,
+                     typicalerror=typicalerror,
+                     weights=weights,
+                     RestrictAvToRadialDomain=RestrictAvToRadialDomain,
+                     DoAccr=DoAccr,
+                     DoMerid=DoMerid,
+                     DoFarSideOnly=DoFarSideOnly,
+                     mumap_polarpos=None)
 
     # SIGNS CALIBRATED ON THE RT TRIALS WIGGLERT
     # beware when flipping across the sky as observer sees the cone with psi < 0, with z<0, where a wind would have v_z < 0 in disk coordinates.
@@ -1102,9 +733,6 @@ def exec_conicpolar_expansions(M):
     v_Phi_prof = np.nan_to_num(v_Phi_prof)
     sv_Phi_prof = np.nan_to_num(sv_Phi_prof)
 
-    #v_Phi_prof[np.isnan(v_Phi_prof)]=0.
-    #sv_Phi_prof[np.isnan(sv_Phi_prof)]=0.
-
     v_R_prof = AccrAmps / sini
     sv_R_prof = sAccrAmps / np.fabs(sini)
     v_R_prof = np.nan_to_num(v_R_prof)
@@ -1115,148 +743,47 @@ def exec_conicpolar_expansions(M):
     v_z_prof = np.nan_to_num(v_z_prof)
     sv_z_prof = np.nan_to_num(sv_z_prof)
 
-    #bmaj=hdr2['BMAJ']
-    #print( "bmaj = ",bmaj,"\n";)
-    #Nind=2.*np.pi*rrs /(cosi * bmaj*3600.)
-    #dispv_Phi_prof=sv_Phi_prof.copy()
-    #sv_Phi_prof=sv_Phi_prof/np.sqrt(Nind)
-
     ######################################################################
     # now compute chi2 in polar coords
 
-    if (DoDCone):
+    # im_Npolcorr**2 anticipates correlated pixels in the radial direction
+    chi2image = weights * (im_polar - im_polar_av)**2 / im_Npolcorr**2
+    chi2image = np.nan_to_num(chi2image)
+    deltaChi2 = np.sum(chi2image, axis=1)
 
-        imazim_far = conicpolartocart(im_polar_av, inc, -tanpsi)
-        im_polar_av_far_near = carttoconicpolar(imazim_far, inc, tanpsi)
+    if (np.any(weights < 0.)):
+        sys.exit("negative weights!!!!")
+    if (np.any(chi2image < 0.)):
+        sys.exit("negative chi2!!!!")
 
-        for irrs in range(len(rrs)):
-            v0_vec = im_polar[irrs, :] - vsyst
-            v0_vec_m = im_polar_av[irrs, :] - vsyst
-            v0_vec_FN_m = im_polar_av_far_near[irrs, :] - vsyst
-            if (M.DoErrorMap):
-                w_vec = weights[irrs, :]
-            else:
-                w_vec = 1. / typicalerror**2
+    deltaimage = im_polar - im_polar_av
+    velodev_med = np.sqrt(np.median(deltaimage[ia_min:ia_max, :]**2))
+    velodev_std = np.std(deltaimage[ia_min:ia_max, :])
+    velodev_std_vec = np.std(deltaimage, axis=1)
+    velodev_std2 = np.std(velodev_std_vec[ia_min:ia_max])
 
-            Delta_o = v0_vec - v0_vec_FN_m
-            Delta_m = v0_vec_m - v0_vec_FN_m
-            cos_vec = np.fabs(np.cos(phis_rad))
+    #varim = deltaimage**2 * weights
+    #varvec = np.sum(varim, axis=1)
+    #wvec = np.sum(weights, axis=1)
+    #mask = (wvec < 1E-10)
+    #vec_w_var = varvec  # / wvec)
+    #vec_w_var[mask] = 0.
+    # #vec_median_w = np.median(weights, axis=1)
+    # #vec_typicalerror = np.sqrt(1. / vec_median_w)
+    # deltaChi2 = vec_w_var  # / vec_typicalerror**2.)
 
-            A = np.sum(w_vec * cos_vec * Delta_m *
-                       (Delta_m - Delta_o)) / np.sum(
-                           w_vec * cos_vec**2 * Delta_m**2)
+    #colapsed_weights=np.sum(weights,axis=1)
+    #dispv_Phi_prof=colapsed_weights.copy()
+    #mask=(colapsed_weights > 1E-10)
+    #dispv_Phi_prof[mask]=np.sqrt(deltaChi2[mask]/colapsed_weights[mask])  # << weighted dispersion of residuals
+    #dispv_Phi_prof[np.invert(mask)]=np.nan
+    ## dispv_Phi_prof = np.sqrt(deltaChi2/colapsedweights)
 
-            if (A < 0.):
-                A = 0.
-            # sys.exit("BUG")
-
-            if (A > 0.5):
-                #print( "setting A",A,"to 1")
-                A = 0.5
-
-            mu_vec = (1. - A * cos_vec)
-
-            mumap_polarpos[irrs, :] = mu_vec
-
-            # testing for chi2 improvement:
-            TestChi2Improv = False
-            if TestChi2Improv:
-                subchi2 = np.sum(w_vec * (v0_vec - v0_vec_m)**2)
-                subchi2_mumap = np.sum(
-                    w_vec * (v0_vec - (v0_vec_m * mu_vec + v0_vec_FN_m *
-                                       (1. - mu_vec)))**2)
-                flag = ''
-                if (subchi2_mumap > subchi2):
-                    flag = '<<'
-                print(("irrs %d irrs r %f A %f chi2 %f chi2_mu %f %s " %
-                       (irrs, rrs[irrs], A, subchi2, subchi2_mumap, flag)))
-
-        #(nr,nphis)=im_polar_av.shape
-        #im_phi=np.tile(phis_rad,(nphis,1))
-        #im_cosphi=np.tile(np.cos(phis_rad),(nphis,1))
-
-        #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
-        zeimage = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
-        zeimage = np.nan_to_num(zeimage)
-        deltaChi2 = np.sum(zeimage, axis=1)
-
-        deltaimage = im_polar - im_polar_av
-        velodev_med = np.sqrt(np.median(deltaimage[ia_min:ia_max]**2))
-
-        velodev_std = np.std(deltaimage[ia_min:ia_max, :])
-        velodev_std_vec = np.std(deltaimage, axis=1)
-        velodev_std2 = np.std(velodev_std_vec[ia_min:ia_max])
-
-        im_polar_av_DCone = im_polar_av * mumap_polarpos + im_polar_av_far_near * (
-            1. - mumap_polarpos)
-
-        #M.DConeDeltaChi2=False
-        zeimage_DCone = weights * (im_polar - im_polar_av_DCone)**2
-        deltaChi2_DCone = np.sum(zeimage_DCone, axis=1)
-
-        chi2 = sum(deltaChi2[ia_min:ia_max])
-        #chi2_DCone=sum(deltaChi2_DCone[ia_min:ia_max])
-        if (((np.fabs(chi2 - M.chi2_prev) / chi2) < 1E-8)
-                and not M.DConeDeltaChi2):
-            print("using DConeDeltaChi2 chi2: ", chi2, " chi2_prev",
-                  M.chi2_prev)
-            M.DConeDeltaChi2 = True
-
-        if M.DConeDeltaChi2:
-            deltaChi2 = deltaChi2_DCone
-
-            #zeimage_N=weights*mumap_polarpos*(im_polar-im_polar_av)**2
-            #zeimage_N=sp.nan_to_num(zeimage_N)
-            #deltaChi2_N =  np.sum(zeimage_N,axis=1)
-            #zeimage_F=weights*(1.-mumap_polarpos)*(im_polar-im_polar_av_far_near)**2
-            #zeimage_F=sp.nan_to_num(zeimage_F)
-            #deltaChi2_F = np.sum(zeimage_F,axis=1)
-            #deltaChi2= deltaChi2_N + deltaChi2_F
-
-        dispv_Phi_prof = np.sqrt(deltaChi2 / np.sum(weights, axis=1))
-        dispv_Phi_prof = np.nan_to_num(dispv_Phi_prof)
-
-    else:
-        #zeimage = weights*im_Npolcorr*(im_polar-im_polar_av)**2
-        zeimage = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
-
-        #zeimage=weights*(im_polar-im_polar_av)**2
-        zeimage = np.nan_to_num(zeimage)
-        #deltaChi2 =  np.sum(zeimage,axis=1)
-
-        if (np.any(weights < 0.)):
-            sys.exit("negative weights!!!!")
-        if (np.any(zeimage < 0.)):
-            sys.exit("negative chi2!!!!")
-
-        deltaimage = im_polar - im_polar_av
-        velodev_med = np.sqrt(np.median(deltaimage[ia_min:ia_max, :]**2))
-        velodev_std = np.std(deltaimage[ia_min:ia_max, :])
-        velodev_std_vec = np.std(deltaimage, axis=1)
-        velodev_std2 = np.std(velodev_std_vec[ia_min:ia_max])
-
-        varim = deltaimage**2 * weights
-        varvec = np.sum(varim, axis=1)
-        wvec = np.sum(weights, axis=1)
-        mask = (wvec < 1E-10)
-        vec_w_var = (varvec / wvec)
-        vec_w_var[mask] = 0.
-        vec_median_w = np.median(weights, axis=1)
-        vec_typicalerror = np.sqrt(1. / vec_median_w)
-        deltaChi2 = (vec_w_var / vec_typicalerror**2.)
-
-        #colapsed_weights=np.sum(weights,axis=1)
-        #dispv_Phi_prof=colapsed_weights.copy()
-        #mask=(colapsed_weights > 1E-10)
-        #dispv_Phi_prof[mask]=np.sqrt(deltaChi2[mask]/colapsed_weights[mask])  # << weighted dispersion of residuals
-        #dispv_Phi_prof[np.invert(mask)]=np.nan
-        ## dispv_Phi_prof = np.sqrt(deltaChi2/colapsedweights)
-
-        #sv_Phi_prof=dispv_Phi_prof.copy()
-        #cosi=np.cos(M.inc)
-        #Nind=2.*np.pi*rrs * cosi /(M.bmaj) # number of beams at each radius
-        #sv_Phi_prof=sv_Phi_prof/np.sqrt(Nind)
-        #sv_Phi_prof=np.nan_to_num(sv_Phi_prof)
+    #sv_Phi_prof=dispv_Phi_prof.copy()
+    #cosi=np.cos(M.inc)
+    #Nind=2.*np.pi*rrs * cosi /(M.bmaj) # number of beams at each radius
+    #sv_Phi_prof=sv_Phi_prof/np.sqrt(Nind)
+    #sv_Phi_prof=np.nan_to_num(sv_Phi_prof)
 
     if (M.DoMerid):
         M.RadialProfile = [
@@ -1312,19 +839,6 @@ def exec_conicpolar_expansions(M):
         hdupolar.data = im_polar_diff
         hdupolar.writeto(fileout_polar_diff, overwrite=True)
 
-        if (DoDCone):
-            fileout_polar_av_far_near = re.sub('fullim.fits',
-                                               'polar_av_far_near.fits',
-                                               filename_fullim)
-            hdupolar.data = im_polar_av_far_near
-            hdupolar.writeto(fileout_polar_av_far_near, overwrite=True)
-
-            fileout_polar_av_far_near = re.sub('fullim.fits',
-                                               'polar_av_DCone.fits',
-                                               filename_fullim)
-            hdupolar.data = im_polar_av_DCone
-            hdupolar.writeto(fileout_polar_av_far_near, overwrite=True)
-
     ######################################################################
     # Polar average: back to sky  for diff image
 
@@ -1334,8 +848,6 @@ def exec_conicpolar_expansions(M):
             print(
                 "CONICPOLAR2CARTESIAN TRANSFORM FOR AZIM AV START im_polar_av")
             print("using inc ", inc * np.pi / 180., "deg tanpsi ", tanpsi)
-
-        start_time = time.time()
 
         #(ny,nx) = im_polar.shape
         #x=np.arange(0,nx)
@@ -1370,9 +882,9 @@ def exec_conicpolar_expansions(M):
 
         im4 = imazim  #gridding(fileout_stretched_av,hdr3)
 
-        if (M.Verbose):
-            print("CONICPOLAR2CARTESIAN TRANSFORM FOR AZIM AV  DONE in",
-                  time.time() - start_time)
+        #if (M.Verbose):
+        #    print("CONICPOLAR2CARTESIAN TRANSFORM FOR AZIM AV  DONE in",
+        #          time.time() - start_time)
 
         if (DumpAllFitsFiles):
             fileout_azimav = re.sub('fullim.fits', 'azim_av.fits',
@@ -1387,15 +899,39 @@ def exec_conicpolar_expansions(M):
         diff_im_faceon = resamp_faceon - imazim_faceon
 
         im_polar_av_region = im_polar_av.copy()
+
         im_polar_av_region[0:ia_min] = 0.
         im_polar_av_region[ia_min:ia_max] = 1.
         im_polar_av_region[ia_max:] = 0.
+
+        if M.ExtendRegions:
+            if M.iregion == 0:
+                print("extending inwards domain of inner region")
+                im_polar_av_region[0:ia_min] = 1.
+            if M.iregion == (M.n_abins - 2):
+                print("extending outwards domain of inner region")
+                im_polar_av_region[ia_max:] = 1.
+
         imazim_region = conicpolartocart(im_polar_av_region, inc, tanpsi)
         imazim_region_drot = ndimage.rotate(imazim_region,
                                             -rotangle,
                                             reshape=False,
                                             order=0)
         imazim_region_faceon = polartocart(im_polar_av_region, faceoninc)
+
+        imazim_rrs = conicpolartocart(im_polar_rrs, inc, tanpsi)
+        imazim_rrs_drot = ndimage.rotate(imazim_rrs,
+                                         -rotangle,
+                                         reshape=False,
+                                         order=0)
+        imazim_rrs_faceon = polartocart(im_polar_rrs, faceoninc)
+
+        imazim_phis = conicpolartocart(im_polar_phis, inc, tanpsi)
+        imazim_phis_drot = ndimage.rotate(imazim_phis,
+                                          -rotangle,
+                                          reshape=False,
+                                          order=0)
+        imazim_phis_faceon = polartocart(im_polar_phis, faceoninc)
 
         mask = np.where(imazim_region_drot > 0.9)
         skychi2 = np.sum(weights[mask] * diff_im[mask]**2) / M.Ncorr
@@ -1405,6 +941,26 @@ def exec_conicpolar_expansions(M):
         hdudiff.data = diff_im
         hdudiff.header = hdr2
         M.Hdudiff = hdudiff
+
+        hdurrs = pf.PrimaryHDU()
+        hdurrs.data = imazim_rrs_drot
+        hdurrs.header = hdr2
+        M.Hdurrs = hdurrs
+
+        hdurrs_faceon = pf.PrimaryHDU()
+        hdurrs_faceon.data = imazim_rrs_faceon
+        hdurrs_faceon.header = hdr2
+        M.Hdurrs_faceon = hdurrs_faceon
+
+        hduphis_faceon = pf.PrimaryHDU()
+        hduphis_faceon.data = imazim_phis_faceon
+        hduphis_faceon.header = hdr2
+        M.Hduphis_faceon = hduphis_faceon
+
+        hduphis = pf.PrimaryHDU()
+        hduphis.data = imazim_phis_drot
+        hduphis.header = hdr2
+        M.Hduphis = hduphis
 
         hdudiff_faceon = pf.PrimaryHDU()
         hdudiff_faceon.data = diff_im_faceon
@@ -1466,93 +1022,6 @@ def exec_conicpolar_expansions(M):
         ##fileout_proj=re.sub('fullim.fits', 'azim_av_proj.fits', filename_fullim)
         ##if (not OptimOrient):
         ##    pf.writeto(fileout_proj,im4, hdr2, overwrite=True)
-
-        if (DoDCone):
-
-            ######################################################################
-            # average +-psi in sky plane
-
-            imazim_far = conicpolartocart(im_polar_av, inc, -tanpsi)
-            imazim_far_drot = ndimage.rotate(imazim_far,
-                                             -rotangle,
-                                             reshape=False,
-                                             order=0)
-
-            mumap0 = conicpolartocart(mumap_polarpos, inc, tanpsi)
-            mumap = ndimage.rotate(mumap0, -rotangle, reshape=False)
-
-            if M.DConeDeltaChi2:
-                M.mumap = mumap
-
-            immod_DCone = mumap * im4drot + (1. - mumap) * imazim_far_drot
-            diff_im_DCone = resamp - immod_DCone
-
-            # immod_DCone_b_rot = conicpolartocart(im_polar_av_DCone,inc,tanpsi)
-            # immod_DCone_b=ndimage.rotate(immod_DCone_b_rot, -rotangle, reshape=False)
-            # diff_im_DCone_b = resamp - immod_DCone_b
-
-            if DoDCone:
-                hduDConemoddrot = pf.PrimaryHDU()
-                hduDConemoddrot.data = immod_DCone
-                hduDConemoddrot.header = hdr2
-                M.HduDConemoddrot = hduDConemoddrot
-
-                hdudiffDConemoddrot = pf.PrimaryHDU()
-                hdudiffDConemoddrot.data = diff_im_DCone
-                hdudiffDConemoddrot.header = hdr2
-                M.HdudiffDConemoddrot = hdudiffDConemoddrot
-
-                hdumumap = pf.PrimaryHDU()
-                hdumumap.data = mumap
-                hdumumap.header = hdr2
-                M.Hdumumap = hdumumap
-
-            if (DumpAllFitsFiles):
-                fileout_mumap = re.sub('fullim.fits', 'mumap.fits',
-                                       filename_fullim)
-                pf.writeto(fileout_mumap, mumap, hdr2, overwrite=True)
-
-                fileout_azimav_far = re.sub('fullim.fits', 'azim_av_far.fits',
-                                            filename_fullim)
-                pf.writeto(fileout_azimav_far,
-                           imazim_far,
-                           hdr2,
-                           overwrite=True)
-
-                fileout_azimav_far_drot = re.sub('fullim.fits',
-                                                 'azim_av_far_drot.fits',
-                                                 filename_fullim)
-                pf.writeto(fileout_azimav_far_drot,
-                           imazim_far_drot,
-                           hdr2,
-                           overwrite=True)
-
-                fileout_immod_DCone = re.sub('fullim.fits', 'immod_DCone.fits',
-                                             filename_fullim)
-                pf.writeto(fileout_immod_DCone,
-                           immod_DCone,
-                           hdr2,
-                           overwrite=True)
-
-                # for  some reason _b does not work, there seems to be a background
-                # fileout_immod_DCone_b=re.sub('fullim.fits', 'immod_DCone_b.fits', filename_fullim)
-                # pf.writeto(fileout_immod_DCone_b,immod_DCone_b, hdr2, overwrite=True)
-
-                # for  some reason _b does not work, there seems to be a background
-                # fileout_immod_DCone_a_b=re.sub('fullim.fits', 'immod_DCone_a-b.fits', filename_fullim)
-                # pf.writeto(fileout_immod_DCone_a_b,immod_DCone-immod_DCone_b, hdr2, overwrite=True)
-
-                fileout_immod_DCone_diff = re.sub('fullim.fits',
-                                                  'diff_DCone.fits',
-                                                  filename_fullim)
-                pf.writeto(fileout_immod_DCone_diff,
-                           diff_im_DCone,
-                           hdr2,
-                           overwrite=True)
-
-                # for  some reason _b does not work, there seems to be a background
-                # fileout_immod_DCone_diff_b=re.sub('fullim.fits', 'diff_DCone_b.fits', filename_fullim)
-                # pf.writeto(fileout_immod_DCone_diff_b,diff_im_DCone_b, hdr2, overwrite=True)
 
     ######################################################################
     # CROSS CHECK INVERSE TRANSFORM

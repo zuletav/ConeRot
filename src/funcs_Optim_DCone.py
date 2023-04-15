@@ -9,10 +9,10 @@ from iminuit import Minuit
 import matplotlib.pyplot as plt
 import emcee
 
-include_path = '/home/simon/common/python/include/'
-sys.path.append(include_path)
-from ConeRot.DConeMaps import *
-import ConeRot.KineSummary as KineSummary
+# include_path = '/home/simon/common/python/include/'
+# sys.path.append(include_path)
+from ConeRot.src.DConeMaps import *
+from ConeRot.src import KineSummary
 
 import time
 #from time import gmtime, strftime
