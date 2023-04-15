@@ -36,8 +36,8 @@ def exec_av(DoErrorMap,
             mumap_polarpos=None):
 
     for irrs in range(len(rrs)):
-        im_polar_rrs[irrs,: ] = rrs[irrs]
-        im_polar_phis[irrs,: ] = phis_rad
+        im_polar_rrs[irrs, :] = rrs[irrs]
+        im_polar_phis[irrs, :] = phis_rad
         KepAmps[irrs] = 0.
         sKepAmps[irrs] = 0.
         AccrAmps[irrs] = 0.
@@ -49,7 +49,7 @@ def exec_av(DoErrorMap,
             continue
 
         v0_vec = im_polar[irrs, :] - vsyst
-        # print("type v0_vec", v0_vec.dtype) ## DEV 
+        # print("type v0_vec", v0_vec.dtype) ## DEV
         if (DoErrorMap):
             w_vec = weights[irrs, :]
         else:

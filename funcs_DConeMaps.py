@@ -216,7 +216,7 @@ def carttoconicpolar(im, inc, tanpsi):
                                            yoffset_polar,
                                            inc=inc,
                                            tanpsi=tanpsi)
-    
+
     return im_polar
 
 
@@ -503,7 +503,7 @@ def exec_conicpolar_expansions(M):
     RestrictAvToRadialDomain = M.RestrictAvToRadialDomain  # set to True is faster but may lead to discontinuities in region averages.
 
     DoFarSideOnly = M.DoFarSideOnly
-    
+
     hdu = M.Hducentered
     hduw = M.Hduwcentered
 
@@ -577,8 +577,7 @@ def exec_conicpolar_expansions(M):
         print("using inc ", inc * np.pi / 180., " tanpsi ", tanpsi)
 
     im_polar = carttoconicpolar(im3, inc, tanpsi)
-    
-    
+
     if (DoDCone):
         mumap_polarpos = carttoconicpolar(mumap, inc, tanpsi)
 
@@ -691,7 +690,6 @@ def exec_conicpolar_expansions(M):
         if (M.Verbose):
             print("vsyst from M = ", vsyst)
 
-            
     TakeAzAv.exec_av(M.DoErrorMap,
                      M.bmaj,
                      M.InheritMumap,
@@ -842,13 +840,13 @@ def exec_conicpolar_expansions(M):
 
     else:
 
-        zeimage = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
-
-        zeimage = np.nan_to_num(zeimage)
+        chi2image = weights * (im_polar - im_polar_av)**2 / im_Npolcorr
+        chi2image = np.nan_to_num(chi2image)
+        deltaChi2 = np.sum(chi2image, axis=1)
 
         if (np.any(weights < 0.)):
             sys.exit("negative weights!!!!")
-        if (np.any(zeimage < 0.)):
+        if (np.any(chi2image < 0.)):
             sys.exit("negative chi2!!!!")
 
         deltaimage = im_polar - im_polar_av
@@ -857,15 +855,15 @@ def exec_conicpolar_expansions(M):
         velodev_std_vec = np.std(deltaimage, axis=1)
         velodev_std2 = np.std(velodev_std_vec[ia_min:ia_max])
 
-        varim = deltaimage**2 * weights
-        varvec = np.sum(varim, axis=1)
-        wvec = np.sum(weights, axis=1)
-        mask = (wvec < 1E-10)
-        vec_w_var = (varvec / wvec)
-        vec_w_var[mask] = 0.
-        vec_median_w = np.median(weights, axis=1)
-        vec_typicalerror = np.sqrt(1. / vec_median_w)
-        deltaChi2 = (vec_w_var / vec_typicalerror**2.)
+        #varim = deltaimage**2 * weights
+        #varvec = np.sum(varim, axis=1)
+        #wvec = np.sum(weights, axis=1)
+        #mask = (wvec < 1E-10)
+        #vec_w_var = varvec  # / wvec)
+        #vec_w_var[mask] = 0.
+        # #vec_median_w = np.median(weights, axis=1)
+        # #vec_typicalerror = np.sqrt(1. / vec_median_w)
+        # deltaChi2 = vec_w_var  # / vec_typicalerror**2.)
 
         #colapsed_weights=np.sum(weights,axis=1)
         #dispv_Phi_prof=colapsed_weights.copy()
@@ -1011,12 +1009,12 @@ def exec_conicpolar_expansions(M):
         im_polar_av_region[0:ia_min] = 0.
         im_polar_av_region[ia_min:ia_max] = 1.
         im_polar_av_region[ia_max:] = 0.
-        
+
         if M.ExtendRegions:
-            if M.iregion==0:
+            if M.iregion == 0:
                 print("extending inwards domain of inner region")
                 im_polar_av_region[0:ia_min] = 1.
-            if M.iregion==(M.n_abins - 2):
+            if M.iregion == (M.n_abins - 2):
                 print("extending outwards domain of inner region")
                 im_polar_av_region[ia_max:] = 1.
 
@@ -1029,16 +1027,16 @@ def exec_conicpolar_expansions(M):
 
         imazim_rrs = conicpolartocart(im_polar_rrs, inc, tanpsi)
         imazim_rrs_drot = ndimage.rotate(imazim_rrs,
-                                            -rotangle,
-                                            reshape=False,
-                                            order=0)
+                                         -rotangle,
+                                         reshape=False,
+                                         order=0)
         imazim_rrs_faceon = polartocart(im_polar_rrs, faceoninc)
 
         imazim_phis = conicpolartocart(im_polar_phis, inc, tanpsi)
         imazim_phis_drot = ndimage.rotate(imazim_phis,
-                                            -rotangle,
-                                            reshape=False,
-                                            order=0)
+                                          -rotangle,
+                                          reshape=False,
+                                          order=0)
         imazim_phis_faceon = polartocart(im_polar_phis, faceoninc)
 
         mask = np.where(imazim_region_drot > 0.9)
