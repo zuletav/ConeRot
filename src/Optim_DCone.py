@@ -51,8 +51,9 @@ class OptimModel():
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
-            print("OptimModel setting ", a_attribute, " to ",
-                  initlocals[a_attribute])
+            if M.VerboseInit:
+                print("OptimModel setting ", a_attribute, " to ",
+                      initlocals[a_attribute])
             setattr(self, a_attribute, initlocals[a_attribute])
 
         # print( "opening log:",M.workdir+M.filelog)
@@ -72,7 +73,6 @@ class OptimModel():
 
         result_ml = np.load(M.workdir + 'result_ml.dat.npy')
         print("result_ml is ", result_ml)
-        print("LOG:", M.fout)
         M.fout.write("Global: \n")
         for iparam in range(nvar):
             print(names[iparam], "->", result_ml[iparam])

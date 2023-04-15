@@ -592,7 +592,6 @@ def exec_Regions(M, OptimM):
         cube_imDConemoddrot = np.zeros((M.n_abins - 1, ny, nx))
         cube_diffimDConemoddrot = np.zeros((M.n_abins - 1, ny, nx))
 
-    print("Regions M.fout", M.fout)
     M.fout.write("Regions:\n")
 
     M.PrintOptimStatus = False

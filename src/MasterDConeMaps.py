@@ -139,6 +139,7 @@ class Setup():
             StoreRegions=False,
             DoFarSideOnly=False,
             ExtendRegions=False,
+            VerboseInit=False,
             exec_master_script='exec_master.py'):
         """ 
         generate an instance for ConeRot 
@@ -148,8 +149,9 @@ class Setup():
         initlocals.pop('self')
         passargs = {}
         for a_attribute in initlocals.keys():
-            print("MasterDConeMaps  setting ", a_attribute, " to ",
-                  initlocals[a_attribute])
+            if VerboseInit:
+                print("MasterDConeMaps  setting ", a_attribute, " to ",
+                      initlocals[a_attribute])
             setattr(self, a_attribute, initlocals[a_attribute])
             passargs['a_attribute'] = initlocals[a_attribute]
 
@@ -173,15 +175,16 @@ class Setup():
 
         os.system("mkdir " + self.workdir)
 
-        os.system("rsync -va " + self.exec_master_script + " " + self.workdir)
-        os.system("tar cvfz " + self.workdir + "ball_conemaps.tgz " + CURR_DIR)
+        os.system("rsync -a " + self.exec_master_script + " " + self.workdir)
+        os.system("tar cfz " + self.workdir + "ball_conemaps.tgz " + CURR_DIR)
 
-        M = DConeMaps.Model(VerboseInit=False)
+        M = DConeMaps.Model(VerboseInit=self.VerboseInit)
 
         for a_attribute in M.__dict__.keys():
             if (a_attribute in self.__dict__.keys()):
-                print("setting M ", a_attribute, " to ",
-                      self.__dict__[a_attribute])
+                if self.VerboseInit:
+                    print("setting M ", a_attribute, " to ",
+                          self.__dict__[a_attribute])
                 setattr(M, a_attribute, self.__dict__[a_attribute])
 
         # #####################################################################
