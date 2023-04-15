@@ -5,9 +5,6 @@ from copy import copy,deepcopy
 import os
 from optparse import OptionParser
 
-HOME=os.environ.get('HOME')
-include_path=HOME+'/common/python/include/'
-sys.path.append(include_path)
 import ConeRot.MasterDConeMaps as MasterDConeMaps
 
 sourcedir='/home/simon/rsynccommon/ppdisks/HD163296/kine/data_1/dgaussmoments_LOSNoise_tclean_HD_163296briggs0.5_12CO_auto_wide/'

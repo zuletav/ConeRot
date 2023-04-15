@@ -5,11 +5,7 @@ from copy import copy, deepcopy
 import os
 from pprint import pprint
 
-HOME = os.environ.get('HOME')
-include_path = '/home/simon/common/python/include/'
-sys.path.append(include_path)
-
-from ConeRot.src import MasterDConeMaps
+from ConeRot import MasterDConeMaps
 
 distance = 121.246
 
@@ -205,7 +201,7 @@ else:
 SFixOrient.vsyst = vsys
 S.vsyst = vsys
 
-from ConeRot.src import KineSummaryCompact
+from ConeRot import KineSummaryCompact
 
 file_continuum = False  # './continuum/median_restored_finetav_fullim.fits'
 
