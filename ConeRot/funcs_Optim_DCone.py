@@ -11,8 +11,8 @@ import emcee
 
 # include_path = '/home/simon/common/python/include/'
 # sys.path.append(include_path)
-from ConeRot.src.DConeMaps import *
-from ConeRot.src import KineSummary
+from ConeRot.DConeMaps import *
+from ConeRot import KineSummary
 
 import time
 #from time import gmtime, strftime

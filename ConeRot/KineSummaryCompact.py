@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from astropy.io import fits
 import scipy
 import scipy.signal

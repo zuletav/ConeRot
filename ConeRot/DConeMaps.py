@@ -16,7 +16,7 @@ from time import gmtime, strftime
 #from pylab import *
 #import matplotlib.colors as colors
 
-from ConeRot.src import funcs_DConeMaps
+from ConeRot import funcs_DConeMaps
 
 class Model():
 

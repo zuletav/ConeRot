@@ -18,8 +18,8 @@ import matplotlib.colors as colors
 # sys.path.append(include_path)
 from ImUtils.Resamp import gridding
 from ImUtils.Cube2Im import slice0
-import ConeRot.src.TakeAzAv as TakeAzAv
-import ConeRot.src.ConicTransforms_numba as ConicTransforms
+import ConeRot.TakeAzAv as TakeAzAv
+import ConeRot.ConicTransforms_numba as ConicTransforms
 # import PyVtools.Vtools as Vtools
 
 if not sys.warnoptions:

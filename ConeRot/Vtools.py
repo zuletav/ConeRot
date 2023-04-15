@@ -160,6 +160,7 @@ def View(indata,cmap='RdBu_r',AllContours=False):
                 hducontours = fits.PrimaryHDU()
                 hducontours.data = imcont
                 hdr=hducontours.header
+                hdrcontours = {}
                 hdrcontours['CDELT1']=1.
                 hdrcontours['CDELT2']=1.
                 (nx,ny)=imcont.shape

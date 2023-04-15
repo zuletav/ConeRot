@@ -12,12 +12,6 @@ import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-include_path='/home/simon/common/python/include/'
-sys.path.append(include_path)
-import ImUtils.Resamp as Resamp
-import ImUtils.Cube2Im as Cube2Im
-
-
 def spider(filetag='',r1=0.3,r2=3.,nrlevs=20,nphilevs=40,fileout='spider.pdf'):
 
     nplotsx=1

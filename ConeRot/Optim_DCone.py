@@ -11,13 +11,13 @@ from pylab import *
 import matplotlib.colors as colors
 import scipy.optimize as op
 
-from ConeRot.src.funcs_DConeMaps import *
-from ConeRot.src.DConeMaps import Model
-from ConeRot.src.funcs_Optim_DCone import exec_ConjGrad_1region
-import ConeRot.src.KineSummary as KineSummary
-from ConeRot.src.funcs_Optim_DCone import exec_emcee
-from ConeRot.src.funcs_Optim_DCone import exec_emcee
-from ConeRot.src.funcs_Optim_DCone import exec_Regions
+from ConeRot.funcs_DConeMaps import *
+from ConeRot.DConeMaps import Model
+from ConeRot.funcs_Optim_DCone import exec_ConjGrad_1region
+import ConeRot.KineSummary as KineSummary
+from ConeRot.funcs_Optim_DCone import exec_emcee
+from ConeRot.funcs_Optim_DCone import exec_emcee
+from ConeRot.funcs_Optim_DCone import exec_Regions
 
 #def pass_model(Mpass):
 #    global M

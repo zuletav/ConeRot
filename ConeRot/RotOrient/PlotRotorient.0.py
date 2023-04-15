@@ -9,11 +9,6 @@ from astropy import constants as const
 import os    
 import matplotlib.gridspec as gridspec
 
-HOME=os.environ.get('HOME')
-print("HOME: ",HOME)
-include_path=HOME+'/common/python/include/'
-sys.path.append(include_path)
-
 import ConeRot.RotOrient.LogResults as  LogResults
 import ConeRot.RotOrient.StellarMass as StellarMass 
 import ConeRot.RotOrient.RotCurve  as RotCurve

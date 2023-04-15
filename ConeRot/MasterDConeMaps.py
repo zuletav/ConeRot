@@ -5,8 +5,8 @@ import argparse
 import numpy as np
 import re
 
-from ConeRot.src import DConeMaps
-from ConeRot.src import Optim_DCone
+from ConeRot import DConeMaps
+from ConeRot import Optim_DCone
 
 from ImUtils.FixHeads import fixhead_3
 
